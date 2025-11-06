@@ -1,0 +1,204 @@
+/* style.css - Layout Híbrido */
+
+:root {
+    /* Variáveis CSS para as cores dinâmicas (serão preenchidas pelo JS) */
+    --cor-fundo-principal: #D90404; /* Vermelho (do seu layout de exemplo) */
+    --cor-fundo-secundario: #F7B500; /* Amarelo (do seu layout de exemplo) */
+    --cor-texto-descricao: #FFFFFF; /* Branco padrão */
+    --cor-texto-preco: #FFFFFF; /* Branco padrão */
+}
+
+body {
+    margin: 0;
+    overflow: hidden; /* Evita barras de rolagem */
+    font-family: Arial, sans-serif; /* Fonte padrão */
+    height: 100vh; /* Ocupa 100% da altura da viewport */
+    width: 100vw; /* Ocupa 100% da largura da viewport */
+    background-color: #000; /* Fundo preto caso tudo falhe */
+}
+
+#app {
+    width: 100%;
+    height: 100%;
+    position: relative; /* Essencial para o posicionamento absoluto */
+    display: flex;
+    flex-direction: column; /* Organiza os fundos (vermelho em cima, amarelo embaixo) */
+}
+
+/* --- ESTILOS DE FUNDO (Expansível) --- */
+
+#fundo-principal {
+    background-color: var(--cor-fundo-principal);
+    /* Adiciona um gradiente sutil para não ficar 'chapado' */
+    background-image: linear-gradient(135deg, var(--cor-fundo-principal) 0%, color-mix(in srgb, var(--cor-fundo-principal) 90%, black 10%) 100%);
+    flex-grow: 1; /* Ocupa o máximo de espaço vertical */
+    position: relative;
+    z-index: 1;
+}
+
+#fundo-secundario {
+    background-color: var(--cor-fundo-secundario);
+    height: 15vh; /* Altura da faixa amarela */
+    width: 100%;
+    position: relative;
+    
+    /* --- A CURVA ORGÂNICA E SOMBRA --- */
+    clip-path: ellipse(150% 100% at 50% 100%);
+    transform: translateY(-5vh); /* Puxa para cima, sobrepondo o vermelho */
+    box-shadow: 0 -1vh 2vh rgba(0,0,0,0.2); /* Sombra na curva */
+    z-index: 2; /* Fica sobre o fundo vermelho */
+}
+
+
+/* --- ESTILOS DE CONTEÚDO (Posicionamento Absoluto) --- */
+
+/* Classe base para todos os elementos */
+.elemento-animado {
+    position: absolute;
+    opacity: 0; /* Começa invisível */
+    box-sizing: border-box;
+    z-index: 10; /* Garante que fiquem na frente do fundo */
+}
+
+/* (Área Azul) - Logo */
+#logo-container {
+    top: 5%;
+    left: 10%;
+    width: 80%;
+    height: 25%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Removemos o 'Sua Logo Aqui' branco, então centralizamos o logo no topo */
+    align-items: flex-start; 
+    margin-top: 2vh;
+}
+#logo-img {
+    max-width: 40%; /* Ajuste o tamanho do logo como preferir */
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* (Área Verde) - Produto */
+#produto-container {
+    top: 40%;
+    left: 45%;
+    width: 50%;
+    height: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 11; /* Produto pode ficar na frente da descrição se cruzar */
+}
+#produto-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0.5vh 1.5vh rgba(0,0,0,0.3)); /* Sombra no produto */
+}
+
+/* (Área Roxa) - Descrição */
+#descricao-container {
+    top: 45%;
+    left: 10%;
+    width: 35%;
+    height: 20%;
+    display: flex;
+    align-items: center;
+}
+#descricao-texto {
+    font-size: 3.5vh; /* Tamanho da fonte baseado na altura da tela */
+    color: var(--cor-texto-descricao);
+    font-weight: bold;
+    text-align: left;
+    margin: 0;
+    line-height: 1.2;
+    text-shadow: 0 0.2vh 0.4vh rgba(0,0,0,0.3); /* Sombra no texto */
+}
+
+/* (Área Rosa) - Preço */
+#preco-container {
+    top: 65%;
+    left: 10%;
+    width: 35%;
+    height: 15%;
+    display: flex;
+    align-items: baseline; /* Alinha R$ e preço */
+    color: var(--cor-texto-preco);
+    font-weight: bolder;
+    text-shadow: 0 0.2vh 0.4vh rgba(0,0,0,0.3); /* Sombra no texto */
+}
+.simbolo-real {
+    font-size: 3.5vh;
+    margin-right: 8px;
+}
+#preco-texto {
+    font-size: 10vh;
+    line-height: 1;
+}
+
+/* --- ANIMAÇÕES (Idênticas ao anterior) --- */
+
+.hidden { opacity: 0; }
+
+.slideInUp { animation: slideInUp 0.8s ease-out forwards; }
+@keyframes slideInUp {
+    from { opacity: 0; transform: translateY(100%); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slideInRight { animation: slideInRight 0.8s ease-out forwards; }
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(100%); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.slideInLeft { animation: slideInLeft 0.8s ease-out forwards; }
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-100%); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.typewriter {
+    opacity: 1;
+    animation: typewriter 1s steps(4) forwards;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 0;
+}
+@keyframes typewriter {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+.fadeOut { animation: fadeOut 0.5s ease-in forwards; }
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* --- Ajustes para modo Paisagem (Horizontal) --- */
+@media (orientation: landscape) {
+    /* Ajusta o posicionamento para telas horizontais */
+    
+    #logo-container {
+        top: 5%; left: 35%; width: 30%; height: 20%;
+        align-items: center;
+    }
+    #logo-img { max-width: 60%; }
+
+    #produto-container {
+        top: 20%; left: 55%; width: 40%; height: 70%;
+    }
+    
+    #descricao-container {
+        top: 35%; left: 5%; width: 35%;
+    }
+    #descricao-texto { font-size: 3vw; }
+    
+    #preco-container {
+        top: 55%; left: 5%; width: 35%;
+    }
+    .simbolo-real { font-size: 3vw; }
+    #preco-texto { font-size: 8vw; }
+}
