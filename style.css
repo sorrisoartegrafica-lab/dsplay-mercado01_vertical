@@ -124,7 +124,7 @@ body {
     z-index: 12; /* Na frente do produto */
 }
 #descricao-texto {
-    font-size: 3.2vh; 
+    font-size: 4.0vh; /* --- MUDANÇA: Texto maior (era 3.2vh) --- */
     color: var(--cor-texto-descricao);
     font-weight: bold;
     text-align: left;
@@ -147,62 +147,53 @@ body {
     z-index: 12; /* Na frente do produto */
 }
 .simbolo-real {
-    font-size: 3.2vh;
+    font-size: 4.0vh; /* --- MUDANÇA: 'R$' maior (era 3.2vh) --- */
     margin-right: 8px;
 }
 #preco-texto {
-    font-size: 9vh; 
+    font-size: 11vh; /* --- MUDANÇA: Preço maior (era 9vh) --- */
     line-height: 1;
 }
 
 
-/* --- MUDANÇA: NOVO MÉTODO DA "CAIXINHA" --- */
-
-/* 1. A "Caixinha" (Wrapper) */
+/* --- "Caixinha" do QR/Seta --- */
 #info-inferior-wrapper {
-    bottom: 3vh; /* Posição da caixinha */
+    bottom: 3vh; 
     left: 3vw;
-    width: 94vw; /* Largura total da caixinha */
+    width: 94vw; 
     height: auto;
     z-index: 10;
     
-    /* Mágica do Flex: alinha os filhos (QR e Seta) */
     display: flex;
-    align-items: center; /* Alinha verticalmente */
+    align-items: center; 
 }
-
-/* 2. O QR Code (dentro da caixinha) */
 #qrcode-container {
-    width: 30vw; /* 30% da largura da tela */
-    height: 30vw; /* 30% da largura (para ser quadrado) */
+    width: 30vw; 
+    height: 30vw; 
     background-color: white; 
     padding: 1.5vw; 
     box-sizing: border-box;
-    flex-shrink: 0; /* Não deixa o QR encolher */
+    flex-shrink: 0; 
 }
 #qrcode-img {
     width: 100%;
     height: 100%;
     object-fit: contain;
 }
-
-/* 3. A Caixa da Seta (dentro da caixinha) */
 #qr-texto-container {
     background-color: var(--cor-seta-qr);
     padding: 1.5vh 2vh;
     border-radius: 1vh;
     position: relative;
-    margin-left: 3vw; /* Espaço entre o QR e a caixa */
-    flex-grow: 1; /* Deixa a caixa esticar */
+    margin-left: 3vw; 
+    flex-grow: 1; 
 }
-/* A Seta (feita com CSS) */
 #qr-texto-container::before {
     content: "";
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    
-    left: -2.8vw; /* Posição da seta */
+    left: -2.8vw; 
     width: 0; 
     height: 0; 
     border-top: 1.5vw solid transparent;
@@ -212,7 +203,7 @@ body {
 #qr-texto {
     margin: 0;
     color: white;
-    font-size: 3vw; /* Fonte baseada na largura */
+    font-size: 3vw; 
     font-weight: bold;
     text-align: center;
 }
@@ -220,7 +211,6 @@ body {
 
 
 /* --- ANIMAÇÕES (Mesmas de antes) --- */
-/* (O código de @keyframes e .slideIn etc. permanece o mesmo) */
 .hidden { opacity: 0; }
 .slideInUp { animation: slideInUp 0.8s ease-out forwards; }
 @keyframes slideInUp {
