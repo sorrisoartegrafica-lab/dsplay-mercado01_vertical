@@ -8,8 +8,6 @@
     --cor-texto-preco: #FFFFFF; /* Branco padrão */
 }
 
-/* --- MUDANÇA (Tela Cheia Mais Robusta) --- */
-/* Esta é a correção para as 'bordas pretas' e 'encolhimento' */
 html {
     height: 100vh;
     width: 100vw;
@@ -24,18 +22,13 @@ body {
     background-color: #000; 
 }
 
-/* Usamos 'position: fixed' para 'travar' o app na tela cheia */
 #app {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    
-    /* --- MUDANÇA: 'display: flex' removido --- */
-    /* Não é mais um container flex. É apenas uma âncora. */
 }
-/* --- FIM DA MUDANÇA --- */
 
 
 /* --- ESTILOS DE FUNDO (Expansível) --- */
@@ -43,8 +36,6 @@ body {
 #fundo-principal {
     background-color: var(--cor-fundo-principal);
     background-image: linear-gradient(135deg, var(--cor-fundo-principal) 0%, color-mix(in srgb, var(--cor-fundo-principal) 90%, black 10%) 100%);
-    
-    /* --- MUDANÇA: Trava o fundo vermelho na tela inteira --- */
     position: absolute;
     top: 0;
     left: 0;
@@ -55,8 +46,6 @@ body {
 
 #fundo-secundario {
     background-color: var(--cor-fundo-secundario);
-
-    /* --- MUDANÇA: Trava o fundo amarelo na parte de baixo --- */
     position: absolute;
     left: 0;
     bottom: 0;
@@ -66,8 +55,6 @@ body {
     clip-path: ellipse(150% 100% at 50% 100%);
     box-shadow: 0 -1vh 2vh rgba(0,0,0,0.2); 
     z-index: 2; /* Camada 2 (em cima do vermelho) */
-    
-    /* 'transform' removido, não é mais necessário */
 }
 
 
@@ -99,14 +86,14 @@ body {
 
 /* (Área Verde) - Produto */
 #produto-container {
-    top: 40%;
-    left: 45%;
-    width: 50%;
-    height: 50%;
+    top: 38%; /* --- MUDANÇA: Um pouco mais para cima */
+    left: 42%; /* --- MUDANÇA: Um pouco mais para a esquerda */
+    width: 55%; /* --- MUDANÇA: Imagem maior (era 50%) */
+    height: 55%; /* --- MUDANÇA: Imagem maior (era 50%) */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 11; 
+    z-index: 11; /* --- MUDANÇA: Camada 11 (atrás do texto) */
 }
 #produto-img {
     max-width: 100%;
@@ -123,6 +110,7 @@ body {
     height: 20%;
     display: flex;
     align-items: center;
+    z-index: 12; /* --- MUDANÇA: Camada 12 (na FRENTE do produto) */
 }
 #descricao-texto {
     font-size: 3.2vh; 
@@ -145,9 +133,10 @@ body {
     color: var(--cor-texto-preco);
     font-weight: bolder;
     text-shadow: 0 0.2vh 0.4vh rgba(0,0,0,0.3);
+    z-index: 12; /* --- MUDANÇA: Camada 12 (na FRENTE do produto) */
 }
 .simbolo-real {
-    font-size: 3.2vh; /* Diminuído */
+    font-size: 3.2vh;
     margin-right: 8px;
 }
 #preco-texto {
@@ -196,7 +185,6 @@ body {
 }
 
 /* --- Media Query Horizontal (IGNORAR POR ENQUANTO) --- */
-/* Nós vamos apagar isso e fazer um arquivo separado na Etapa 2 */
 @media (orientation: landscape) {
     /* Este layout está quebrado - não se preocupe com ele agora */
     #logo-container {
