@@ -1,13 +1,17 @@
-/* style.css - Layout Híbrido */
+/* style.css - Layout Final */
 
 :root {
     /* Variáveis CSS para as cores dinâmicas (serão preenchidas pelo JS) */
-    --cor-fundo-principal: #D90404; /* Vermelho (do seu layout de exemplo) */
-    --cor-fundo-secundario: #F7B500; /* Amarelo (do seu layout de exemplo) */
-    --cor-texto-descricao: #FFFFFF; /* Branco padrão */
-    --cor-texto-preco: #FFFFFF; /* Branco padrão */
+    --cor-fundo-principal: #D90404; /* Vermelho */
+    --cor-fundo-secundario: #F7B500; /* Amarelo */
+    --cor-texto-descricao: #FFFFFF; /* Branco */
+    --cor-texto-preco: #FFFFFF; /* Branco */
+    
+    /* NOVO: Cor da seta do QR Code */
+    --cor-seta-qr: #00A300; /* Verde padrão */
 }
 
+/* --- Configuração de Tela Cheia (Sem Bordas) --- */
 html {
     height: 100vh;
     width: 100vw;
@@ -21,7 +25,6 @@ body {
     overflow: hidden; 
     background-color: #000; 
 }
-
 #app {
     position: fixed;
     top: 0;
@@ -30,9 +33,7 @@ body {
     bottom: 0;
 }
 
-
-/* --- ESTILOS DE FUNDO (Expansível) --- */
-
+/* --- Fundos --- */
 #fundo-principal {
     background-color: var(--cor-fundo-principal);
     background-image: linear-gradient(135deg, var(--cor-fundo-principal) 0%, color-mix(in srgb, var(--cor-fundo-principal) 90%, black 10%) 100%);
@@ -41,59 +42,69 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1; /* Camada 1 */
+    z-index: 1; 
 }
-
 #fundo-secundario {
     background-color: var(--cor-fundo-secundario);
     position: absolute;
     left: 0;
     bottom: 0;
     width: 100%;
-    height: 20vh; /* Altura um pouco maior para a curva */
-    
+    height: 20vh; 
     clip-path: ellipse(150% 100% at 50% 100%);
     box-shadow: 0 -1vh 2vh rgba(0,0,0,0.2); 
-    z-index: 2; /* Camada 2 (em cima do vermelho) */
+    z-index: 2; 
 }
 
-
-/* --- ESTILOS DE CONTEÚDO (Layout Vertical Padrão) --- */
+/* --- ESTILOS DE CONTEÚDO (Novo Layout) --- */
 
 .elemento-animado {
     position: absolute;
     opacity: 0; 
     box-sizing: border-box;
-    z-index: 10; /* Camada 10 (em cima de tudo) */
+    z-index: 10; 
 }
 
-/* (Área Azul) - Logo */
+/* Logo (Canto Superior Direito) */
 #logo-container {
-    top: 5%;
-    left: 10%;
-    width: 80%;
-    height: 25%;
+    top: 3%;
+    right: 5%;
+    width: 30%;
+    height: 15%;
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: flex-start; 
-    margin-top: 2vh;
 }
 #logo-img {
-    max-width: 40%; 
+    max-width: 100%; 
     max-height: 100%;
     object-fit: contain;
 }
 
-/* (Área Verde) - Produto */
+/* NOVO: Selo (Esquerda) */
+#selo-container {
+    top: 20%;
+    left: 5%;
+    width: 40%;
+    height: 20%;
+    z-index: 12; /* Na frente do produto */
+}
+#selo-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* Produto (Direita) */
 #produto-container {
-    top: 38%; /* --- MUDANÇA: Um pouco mais para cima */
-    left: 42%; /* --- MUDANÇA: Um pouco mais para a esquerda */
-    width: 55%; /* --- MUDANÇA: Imagem maior (era 50%) */
-    height: 55%; /* --- MUDANÇA: Imagem maior (era 50%) */
+    top: 20%;
+    right: 0%;
+    width: 60%; 
+    height: 70%; 
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 11; /* --- MUDANÇA: Camada 11 (atrás do texto) */
+    z-index: 11; /* Atrás do selo e texto */
 }
 #produto-img {
     max-width: 100%;
@@ -102,15 +113,15 @@ body {
     filter: drop-shadow(0 0.5vh 1.5vh rgba(0,0,0,0.3));
 }
 
-/* (Área Roxa) - Descrição */
+/* Descrição (Esquerda) */
 #descricao-container {
     top: 45%;
-    left: 10%;
-    width: 35%; /* Largura da caixa de texto */
+    left: 5%;
+    width: 40%; 
     height: 20%;
     display: flex;
     align-items: center;
-    z-index: 12; /* --- MUDANÇA: Camada 12 (na FRENTE do produto) */
+    z-index: 12; /* Na frente do produto */
 }
 #descricao-texto {
     font-size: 3.2vh; 
@@ -122,10 +133,10 @@ body {
     text-shadow: 0 0.2vh 0.4vh rgba(0,0,0,0.3);
 }
 
-/* (Área Rosa) - Preço */
+/* Preço (Esquerda) */
 #preco-container {
-    top: 65%;
-    left: 10%;
+    top: 60%;
+    left: 5%;
     width: 40%; 
     height: 15%;
     display: flex;
@@ -133,7 +144,7 @@ body {
     color: var(--cor-texto-preco);
     font-weight: bolder;
     text-shadow: 0 0.2vh 0.4vh rgba(0,0,0,0.3);
-    z-index: 12; /* --- MUDANÇA: Camada 12 (na FRENTE do produto) */
+    z-index: 12; /* Na frente do produto */
 }
 .simbolo-real {
     font-size: 3.2vh;
@@ -144,7 +155,59 @@ body {
     line-height: 1;
 }
 
-/* --- ANIMAÇÕES --- */
+/* NOVO: QR Code (Canto Inferior Esquerdo) */
+#qrcode-container {
+    bottom: 3%;
+    left: 3%;
+    width: 18vh; /* Tamanho quadrado */
+    height: 18vh;
+    z-index: 10;
+    background-color: white; /* Fundo branco para QR Code */
+    padding: 1vh;
+    box-sizing: border-box;
+}
+#qrcode-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* NOVO: Caixa de Texto da Seta */
+#qr-texto-container {
+    bottom: 8%;
+    left: 20%; /* Posição à direita do QR Code */
+    width: 40%; /* Largura da caixa */
+    height: auto;
+    background-color: var(--cor-seta-qr); /* Cor dinâmica */
+    padding: 1.5vh 2vh;
+    border-radius: 1vh;
+    position: relative; /* Necessário para a seta */
+    z-index: 10;
+}
+/* A Seta (feita com CSS) */
+#qr-texto-container::before {
+    content: "";
+    position: absolute;
+    left: -2.8vh; /* Posição da seta */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0; 
+    height: 0; 
+    border-top: 1.5vh solid transparent;
+    border-bottom: 1.5vh solid transparent;
+    border-right: 3vh solid var(--cor-seta-qr); /* Seta da mesma cor */
+}
+#qr-texto {
+    margin: 0;
+    color: white;
+    font-size: 2.5vh;
+    font-weight: bold;
+    text-align: center;
+}
+
+
+/* --- ANIMAÇÕES (Mesmas de antes) --- */
+/* (O código de @keyframes e .slideIn etc. permanece o mesmo) */
 
 .hidden { opacity: 0; }
 
@@ -186,25 +249,5 @@ body {
 
 /* --- Media Query Horizontal (IGNORAR POR ENQUANTO) --- */
 @media (orientation: landscape) {
-    /* Este layout está quebrado - não se preocupe com ele agora */
-    #logo-container {
-        top: 5%; left: 35%; width: 30%; height: 20%;
-        align-items: center;
-    }
-    #logo-img { max-width: 60%; }
-
-    #produto-container {
-        top: 20%; left: 55%; width: 40%; height: 70%;
-    }
-    
-    #descricao-container {
-        top: 35%; left: 5%; width: 35%;
-    }
-    #descricao-texto { font-size: 3vw; }
-    
-    #preco-container {
-        top: 55%; left: 5%; width: 35%;
-    }
-    .simbolo-real { font-size: 3vw; }
-    #preco-texto { font-size: 8vw; }
+    /* Layout horizontal ainda precisa ser feito */
 }
