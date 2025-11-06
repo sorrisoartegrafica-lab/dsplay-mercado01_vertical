@@ -36,9 +36,17 @@ const qrTexto = document.getElementById('qr-texto');
 
 // --- MUDANÇA NA LÓGICA DE ANIMAÇÃO ---
 // Itens Estáticos (Só animam 1 vez)
-const elementosEstaticosAnimados = [logoContainer, qrTextoContainer];
+const elementosEstaticosAnimados = [logoContainer]; // SÓ O LOGO
 // Itens Rotativos (Animam a cada 5s)
-const elementosAnimadosProduto = [produtoContainer, descricaoContainer, precoContainer, seloContainer, qrcodeContainer];
+const elementosAnimadosProduto = [
+    produtoContainer, 
+    descricaoContainer, 
+    precoContainer, 
+    seloContainer, 
+    qrcodeContainer, 
+    qrTextoContainer // A Caixa da Seta agora é rotativa
+];
+// --- FIM DA MUDANÇA ---
 
 
 // --- Constantes de Tempo ---
@@ -61,20 +69,18 @@ function applyConfig(config) {
     document.documentElement.style.setProperty('--cor-texto-descricao', config.COR_TEXTO_DESCRICAO);
     document.documentElement.style.setProperty('--cor-texto-preco', config.COR_TEXTO_PRECO);
     
-    // Aplica Itens Estáticos
+    // Aplica Itens Estáticos (Logo, Texto da Seta, Cor da Seta)
     logoImg.src = config.LOGO_MERCADO_URL;
-    qrTexto.textContent = config.QR_TEXTO;
-    
-    // Aplica Cor da Seta
-    document.documentElement.style.setProperty('--cor-seta-qr', config.QR_COR_SETA || '#00A300');
+    qrTexto.textContent = config.QR_TEXTO; // O texto é estático
+    document.documentElement.style.setProperty('--cor-seta-qr', config.QR_COR_SETA || '#00A300'); // A cor é estática
 
-    // Anima a entrada dos elementos estáticos (Logo, Texto do QR)
+    // Anima a entrada do logo (o único item estático)
     elementosEstaticosAnimados.forEach(el => el.classList.add('slideInUp'));
 }
 
 // 2. Função para ATUALIZAR o conteúdo do PRODUTO (itens que rotacionam)
 function updateContent(item) {
-    // Atualiza os 5 itens rotativos
+    // Atualiza os itens rotativos
     produtoImg.src = item.IMAGEM_PRODUTO_URL;
     descricaoTexto.textContent = item.NOME_PRODUTO;
     precoTexto.textContent = item.PRECO;
@@ -102,6 +108,7 @@ async function playEntranceAnimation() {
     seloContainer.classList.add('slideInLeft'); // Selo entra com a descrição
     descricaoContainer.classList.add('slideInLeft');
     qrcodeContainer.classList.add('slideInUp'); // QR entra de baixo
+    qrTextoContainer.classList.add('slideInUp'); // Seta entra de baixo JUNTO com o QR
     
     await sleep(ANIMATION_DELAY); // Espera a animação principal
 
@@ -111,7 +118,7 @@ async function playEntranceAnimation() {
 
 // 4. Função para EXECUTAR a animação de SAÍDA do PRODUTO
 async function playExitAnimation() {
-    // Todos os 5 itens rotativos saem juntos
+    // Todos os 6 itens rotativos saem juntos
     elementosAnimadosProduto.forEach(el => {
         el.className = 'elemento-animado';
         el.classList.add('fadeOut');
