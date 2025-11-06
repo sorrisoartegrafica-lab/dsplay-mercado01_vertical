@@ -83,10 +83,10 @@ body {
 
 /* Selo (Esquerda) */
 #selo-container {
-    top: 18%;
+    top: 15%; /* --- MUDANÇA: Subiu o selo (era 18%) --- */
     left: 1%;
-    width: 65%; 
-    height: 35%;
+    width: 70%; /* --- MUDANÇA: Aumentou o selo (era 65%) --- */
+    height: 40%; /* --- MUDANÇA: Aumentou o selo (era 35%) --- */
     z-index: 12; /* Na frente do produto */
 }
 #selo-img {
@@ -115,16 +115,16 @@ body {
 
 /* Descrição (Esquerda) */
 #descricao-container {
-    top: 45%;
+    top: 50%; /* --- MUDANÇA: Desceu (era 45%) para dar espaço ao selo */
     left: 5%;
     width: 40%;
-    height: 20%;
+    height: 15%; /* --- MUDANÇA: Altura menor (era 20%) */
     display: flex;
     align-items: center;
     z-index: 12; /* Na frente do produto */
 }
 #descricao-texto {
-    font-size: 4.0vh;
+    font-size: 3.4vh; /* --- MUDANÇA: Diminuiu (era 4.0vh) para não colar no preço */
     color: var(--cor-texto-descricao);
     font-weight: bold;
     text-align: left;
@@ -135,7 +135,7 @@ body {
 
 /* Preço (Esquerda) */
 #preco-container {
-    top: 60%;
+    top: 65%; /* --- MUDANÇA: Desceu (era 60%) para não colar na descrição */
     left: 5%;
     width: 40%; 
     height: 15%;
@@ -147,30 +147,25 @@ body {
     z-index: 12; /* Na frente do produto */
 }
 .simbolo-real {
-    font-size: 4.0vh;
+    font-size: 3.4vh; /* --- MUDANÇA: Diminuiu (era 4.0vh) */
     margin-right: 8px;
 }
 #preco-texto {
-    font-size: 11vh;
+    font-size: 10vh; /* --- MUDANÇA: Diminuiu (era 11vh) */
     line-height: 1;
 }
 
 
 /* --- "Caixinha" do QR/Seta --- */
-
-/* 1. A "Caixinha" (Wrapper) */
 #info-inferior-wrapper {
     bottom: 3vh; 
     left: 3vw;
     width: 94vw; 
     height: auto;
-    z-index: 12; /* --- MUDANÇA: Agora é 12 (na FRENTE do produto) --- */
-    
+    z-index: 12; /* Na FRENTE do produto */
     display: flex;
     align-items: center; 
 }
-
-/* 2. O QR Code (dentro da caixinha) */
 #qrcode-container {
     width: 30vw; 
     height: 30vw; 
@@ -184,24 +179,20 @@ body {
     height: 100%;
     object-fit: contain;
 }
-
-/* 3. A Caixa da Seta (dentro da caixinha) */
 #qr-texto-container {
     background-color: var(--cor-seta-qr);
     padding: 1.5vh 2vh;
     border-radius: 1vh;
     position: relative;
     margin-left: 3vw; 
-    flex-grow: 1; /* Se ajusta ao texto (como pedido) */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* --- MUDANÇA: Sombra leve --- */
+    flex-grow: 1; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
 }
-/* A Seta (feita com CSS) */
 #qr-texto-container::before {
     content: "";
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    
     left: -2.8vw; 
     width: 0; 
     height: 0; 
@@ -212,7 +203,7 @@ body {
 #qr-texto {
     margin: 0;
     color: white;
-    font-size: 3vw; 
+    font-size: 3.5vw; /* --- MUDANÇA: Texto da caixa verde maior (era 3vw) --- */
     font-weight: bold;
     text-align: center;
 }
