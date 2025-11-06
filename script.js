@@ -1,4 +1,200 @@
-// script.js - Versão FINAL com Lógica de Lote 3-em-3
+// script.js - Versão FINAL com Cache-First
+
+// ##################################################################
+//  COLE A URL DA SUA API (DO GOOGLE APPS SCRIPT) AQUI
+// ##################################################################
+const API_URL = "https://script.google.com/macros/s/AKfycbwdo-HzLZF1-_cOOJAG9L79y59kNEpaH52fdp2nuVIAGif5A3XX-dWnZ8eXouev1xXYQg/exec"; 
+// ##################################################################
+
+// --- Chave para o Cache ---
+const CACHE_KEY = 'supermercado_api_cache';
+
+// --- Configuração dos Dados (AGORA VAZIOS, VIRÃO DA API OU CACHE) ---
+let configMercado = {};
+let produtos = [];
+// --- Fim da Configuração ---
+
+
+// Elementos do DOM
+const logoContainer = document.getElementById('logo-container');
+const produtoContainer = document.getElementById('produto-container');
+const descricaoContainer = document.getElementById('descricao-container');
+const precoContainer = document.getElementById('preco-container');
+
+const logoImg = document.getElementById('logo-img');
+const produtoImg = document.getElementById('produto-img');
+const descricaoTexto = document.getElementById('descricao-texto');
+const precoTexto = document.getElementById('preco-texto');
+
+const elementosAnimadosProduto = [produtoContainer, descricaoContainer, precoContainer];
+
+// --- Constantes de Tempo ---
+const PRODUTOS_POR_LOTE = 3; // Mostrar 3 produtos
+const DURACAO_TOTAL_SLOT = 15000; // 15 segundos
+const DURACAO_POR_PRODUTO = DURACAO_TOTAL_SLOT / PRODUTOS_POR_LOTE; // 5000ms (5s) por produto
+
+const ANIMATION_DELAY = 800; // 0.8s
+const EXIT_ANIMATION_DURATION = 500; // 0.5s
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// 1. Função para APLICAR A CONFIGURAÇÃO DO MERCADO (Cores e Logo)
+function applyConfig(config) {
+    document.documentElement.style.setProperty('--cor-fundo-principal', config.COR_FUNDO_PRINCIPAL);
+    document.documentElement.style.setProperty('--cor-fundo-secundario', config.COR_FUNDO_SECUNDARIO);
+    document.documentElement.style.setProperty('--cor-texto-descricao', config.COR_TEXTO_DESCRICAO);
+    document.documentElement.style.setProperty('--cor-texto-preco', config.COR_TEXTO_PRECO);
+    logoImg.src = config.LOGO_MERCADO_URL;
+    logoContainer.classList.add('slideInUp'); 
+}
+
+// 2. Função para ATUALIZAR o conteúdo do PRODUTO
+function updateContent(item) {
+    produtoImg.src = item.IMAGEM_PRODUTO_URL;
+    descricaoTexto.textContent = item.NOME_PRODUTO;
+    precoTexto.textContent = item.PRECO;
+
+    const precoElement = document.getElementById('preco-texto');
+    precoContainer.classList.remove('typewriter');
+    void precoContainer.offsetWidth; 
+    precoContainer.style.animation = 'none'; 
+    
+    const steps = (item.PRECO && item.PRECO.length > 0) ? item.PRECO.length : 1;
+    const duration = steps * 0.15; 
+    
+    precoContainer.style.animation = `typewriter ${duration}s steps(${steps}) forwards`;
+}
+
+// 3. Função para EXECUTAR a sequência de animação de ENTRADA do PRODUTO
+async function playEntranceAnimation() {
+    elementosAnimadosProduto.forEach(el => el.classList.remove('fadeOut'));
+    produtoContainer.classList.add('slideInRight');
+    await sleep(ANIMATION_DELAY);
+    descricaoContainer.classList.add('slideInLeft');
+    await sleep(ANIMATION_DELAY);
+    precoContainer.classList.add('typewriter');
+}
+
+// 4. Função para EXECUTAR a animação de SAÍDA do PRODUTO
+async function playExitAnimation() {
+    elementosAnimadosProduto.forEach(el => {
+        el.className = 'elemento-animado';
+        el.classList.add('fadeOut');
+    });
+    await sleep(EXIT_ANIMATION_DURATION);
+    elementosAnimadosProduto.forEach(el => el.classList.add('hidden'));
+}
+
+// 5. Roda a "Micro-Rotação" (os 3 produtos)
+function runInternalRotation(items) {
+    async function showNextProduct(subIndex) {
+        const item = items[subIndex % items.length];
+        if (subIndex > 0) {
+            await playExitAnimation();
+        }
+        updateContent(item);
+        await playEntranceAnimation();
+    }
+    showNextProduct(0);
+    setTimeout(() => showNextProduct(1), DURACAO_POR_PRODUTO);
+    setTimeout(() => showNextProduct(2), DURACAO_POR_PRODUTO * 2);
+}
+
+
+// 6. FUNÇÃO DE INICIALIZAÇÃO (Totalmente Modificada para Lotes)
+async function init() {
+    let cachedData = null;
+    try {
+        // 1. Tenta carregar do cache
+        const cachedString = localStorage.getItem(CACHE_KEY);
+        if (cachedString) {
+            cachedData = JSON.parse(cachedString);
+            console.log("Template carregado do cache.");
+        }
+    } catch (e) {
+        console.error("Erro ao ler cache", e);
+        cachedData = null; // Invalida o cache se estiver corrompido
+    }
+
+    if (cachedData) {
+        // 2a. Se TEM cache, inicia o template IMEDIATAMENTE
+        runTemplate(cachedData);
+        
+        // 3a. E busca novos dados em segundo plano (sem 'await')
+        fetchFromNetwork(); 
+    } else {
+        // 2b. Se NÃO TEM cache (primeira vez)
+        console.log("Cache vazio. Buscando da rede...");
+        try {
+            const newData = await fetchFromNetwork(); // Espera a rede
+            if(newData) {
+                runTemplate(newData); // Inicia o template com os dados novos
+            } else {
+                throw new Error("Falha ao buscar dados da rede");
+            }
+        } catch (error) {
+            console.error("Erro no init() sem cache:", error);
+            descricaoTexto.textContent = "Erro ao carregar API.";
+        }
+    }
+}
+
+// 7. NOVA FUNÇÃO: Busca dados da rede e salva no cache
+async function fetchFromNetwork() {
+    try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Resposta da rede não foi OK');
+        const data = await response.json();
+        
+        // Salva no cache para a próxima vez
+        localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+        console.log("Cache atualizado com novos dados da rede.");
+        return data;
+    } catch (error) {
+        console.error("Falha ao buscar dados da rede:", error);
+        return null; // Retorna nulo em caso de falha
+    }
+}
+
+// 8. NOVA FUNÇÃO: Contém a lógica de exibição
+function runTemplate(data) {
+    try {
+        configMercado = data.configMercado;
+        produtos = data.produtos;
+        
+        if (!produtos || produtos.length === 0) {
+            console.error("Nenhum produto nos dados.");
+            descricaoTexto.textContent = "Erro: Nenhum produto na planilha.";
+            return;
+        }
+
+        applyConfig(configMercado);
+        
+        const totalBatches = Math.ceil(produtos.length / PRODUTOS_POR_LOTE);
+        const savedBatchIndex = parseInt(localStorage.getItem('ultimo_lote_promo') || 0);
+        const currentBatchIndex = savedBatchIndex % totalBatches;
+        const nextBatchIndex = (currentBatchIndex + 1) % totalBatches;
+        localStorage.setItem('ultimo_lote_promo', nextBatchIndex);
+
+        const startIndex = currentBatchIndex * PRODUTOS_POR_LOTE;
+        const itemsToShow = [
+            produtos[startIndex], 
+            produtos[startIndex + 1], 
+            produtos[startIndex + 2]
+        ].filter(Boolean); // '.filter(Boolean)' remove 'undefined'
+
+        runInternalRotation(itemsToShow);
+
+    } catch (error) {
+        console.error("Erro ao executar o template:", error);
+        descricaoTexto.textContent = "Erro ao exibir dados.";
+    }
+}
+
+// Inicia tudo assim que o DOM estiver pronto (mais rápido que 'window.onload')
+document.addEventListener('DOMContentLoaded', init);// script.js - Versão FINAL com Lógica de Lote 3-em-3
 
 // ##################################################################
 //  COLE A URL DA SUA API (DO GOOGLE APPS SCRIPT) AQUI
@@ -186,4 +382,5 @@ async function init() {
 }
 
 // Inicia tudo
+
 window.onload = init;
