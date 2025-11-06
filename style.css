@@ -8,13 +8,12 @@
     --cor-texto-preco: #FFFFFF; /* Branco padrão */
 }
 
-/* --- MUDANÇA PRINCIPAL (Problema 1) --- */
-/* Força a página inteira a ocupar 100% da tela do player */
+/* --- MUDANÇA PRINCIPAL (Tela Cheia Mais Robusta) --- */
 html, body {
     margin: 0;
     padding: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw; /* Usa 100% da largura da viewport */
+    height: 100vh; /* Usa 100% da altura da viewport */
     overflow: hidden; /* Evita barras de rolagem */
     background-color: #000; /* Fundo preto caso tudo falhe */
 }
@@ -22,7 +21,6 @@ html, body {
 #app {
     width: 100%;
     height: 100%;
-    /* MUDANÇA: 'absolute' força a ancoragem no canto 0,0 da tela */
     position: absolute; 
     top: 0;
     left: 0;
