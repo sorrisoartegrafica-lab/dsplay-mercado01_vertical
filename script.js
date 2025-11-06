@@ -1,4 +1,4 @@
-// script.js - Layout Final com FRASE FIXA
+// script.js - Layout Final com MÉTODO CAIXINHA (Wrapper)
 
 // ##################################################################
 //  COLE A URL DA SUA API (DO GOOGLE APPS SCRIPT) AQUI
@@ -21,8 +21,8 @@ const produtoContainer = document.getElementById('produto-container');
 const descricaoContainer = document.getElementById('descricao-container');
 const precoContainer = document.getElementById('preco-container');
 const seloContainer = document.getElementById('selo-container');
-const qrcodeContainer = document.getElementById('qrcode-container');
-const qrTextoContainer = document.getElementById('qr-texto-container');
+// NOVO: A caixinha principal
+const infoInferiorWrapper = document.getElementById('info-inferior-wrapper');
 
 
 const logoImg = document.getElementById('logo-img');
@@ -30,20 +30,21 @@ const produtoImg = document.getElementById('produto-img');
 const descricaoTexto = document.getElementById('descricao-texto');
 const precoTexto = document.getElementById('preco-texto');
 const seloImg = document.getElementById('selo-img');
+// Itens dentro da caixinha
 const qrcodeImg = document.getElementById('qrcode-img');
 const qrTexto = document.getElementById('qr-texto');
 
 
-// --- MUDANÇA NA LÓGICA DE ANIMAÇÃO (Frase Fixa) ---
+// --- MUDANÇA NA LÓGICA DE ANIMAÇÃO ---
 // Itens Estáticos (Só animam 1 vez)
-const elementosEstaticosAnimados = [logoContainer, qrTextoContainer]; // Logo e Frase da Seta
+const elementosEstaticosAnimados = [logoContainer]; // SÓ O LOGO
 // Itens Rotativos (Animam a cada 5s)
 const elementosAnimadosProduto = [
     produtoContainer, 
     descricaoContainer, 
     precoContainer, 
     seloContainer, 
-    qrcodeContainer // Caixa da Seta REMOVIDA daqui
+    infoInferiorWrapper // A "CAIXINHA" inteira agora é rotativa
 ];
 // --- FIM DA MUDANÇA ---
 
@@ -70,22 +71,21 @@ function applyConfig(config) {
     
     // Aplica Itens Estáticos (Logo, Texto da Seta, Cor da Seta)
     logoImg.src = config.LOGO_MERCADO_URL;
-    qrTexto.textContent = config.QR_TEXTO;
-    document.documentElement.style.setProperty('--cor-seta-qr', config.QR_COR_SETA || '#00A300');
+    qrTexto.textContent = config.QR_TEXTO; // O texto é estático
+    document.documentElement.style.setProperty('--cor-seta-qr', config.QR_COR_SETA || '#00A300'); // A cor é estática
 
-    // --- MUDANÇA ---
-    // Anima a entrada dos elementos estáticos (Logo e Frase da Seta)
+    // Anima a entrada do logo (o único item estático)
     elementosEstaticosAnimados.forEach(el => el.classList.add('slideInUp'));
 }
 
 // 2. Função para ATUALIZAR o conteúdo do PRODUTO (itens que rotacionam)
 function updateContent(item) {
-    // Atualiza os itens rotativos (Selo, QR, etc)
+    // Atualiza os itens rotativos
     produtoImg.src = item.IMAGEM_PRODUTO_URL;
     descricaoTexto.textContent = item.NOME_PRODUTO;
     precoTexto.textContent = item.PRECO;
     seloImg.src = item.SELO_URL;
-    qrcodeImg.src = item.QR_CODE_URL;
+    qrcodeImg.src = item.QR_CODE_URL; // Só atualiza o QR Code
 
     // Prepara a animação de máquina de escrever
     const precoElement = document.getElementById('preco-texto');
@@ -106,9 +106,9 @@ async function playEntranceAnimation() {
     // Animação em paralelo para economizar tempo
     produtoContainer.classList.add('slideInRight');
     seloContainer.classList.add('slideInLeft');
+ax
     descricaoContainer.classList.add('slideInLeft');
-    qrcodeContainer.classList.add('slideInUp'); // QR entra de baixo
-    // --- MUDANÇA: 'qrTextoContainer' removido desta animação ---
+    infoInferiorWrapper.classList.add('slideInUp'); // A "Caixinha" inteira entra de baixo
     
     await sleep(ANIMATION_DELAY); // Espera a animação principal
 
@@ -118,7 +118,7 @@ async function playEntranceAnimation() {
 
 // 4. Função para EXECUTAR a animação de SAÍDA do PRODUTO
 async function playExitAnimation() {
-    // --- MUDANÇA: Apenas os 5 itens rotativos saem ---
+    // Todos os 5 itens rotativos saem juntos
     elementosAnimadosProduto.forEach(el => {
         el.className = 'elemento-animado';
         el.classList.add('fadeOut');
