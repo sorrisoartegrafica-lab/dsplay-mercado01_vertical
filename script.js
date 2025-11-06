@@ -1,4 +1,4 @@
-// script.js - Layout Final com QR/Selo DINÂMICOS POR PRODUTO
+// script.js - Layout Final com FRASE FIXA
 
 // ##################################################################
 //  COLE A URL DA SUA API (DO GOOGLE APPS SCRIPT) AQUI
@@ -34,17 +34,16 @@ const qrcodeImg = document.getElementById('qrcode-img');
 const qrTexto = document.getElementById('qr-texto');
 
 
-// --- MUDANÇA NA LÓGICA DE ANIMAÇÃO ---
+// --- MUDANÇA NA LÓGICA DE ANIMAÇÃO (Frase Fixa) ---
 // Itens Estáticos (Só animam 1 vez)
-const elementosEstaticosAnimados = [logoContainer]; // SÓ O LOGO
+const elementosEstaticosAnimados = [logoContainer, qrTextoContainer]; // Logo e Frase da Seta
 // Itens Rotativos (Animam a cada 5s)
 const elementosAnimadosProduto = [
     produtoContainer, 
     descricaoContainer, 
     precoContainer, 
     seloContainer, 
-    qrcodeContainer, 
-    qrTextoContainer // A Caixa da Seta agora é rotativa
+    qrcodeContainer // Caixa da Seta REMOVIDA daqui
 ];
 // --- FIM DA MUDANÇA ---
 
@@ -71,16 +70,17 @@ function applyConfig(config) {
     
     // Aplica Itens Estáticos (Logo, Texto da Seta, Cor da Seta)
     logoImg.src = config.LOGO_MERCADO_URL;
-    qrTexto.textContent = config.QR_TEXTO; // O texto é estático
-    document.documentElement.style.setProperty('--cor-seta-qr', config.QR_COR_SETA || '#00A300'); // A cor é estática
+    qrTexto.textContent = config.QR_TEXTO;
+    document.documentElement.style.setProperty('--cor-seta-qr', config.QR_COR_SETA || '#00A300');
 
-    // Anima a entrada do logo (o único item estático)
+    // --- MUDANÇA ---
+    // Anima a entrada dos elementos estáticos (Logo e Frase da Seta)
     elementosEstaticosAnimados.forEach(el => el.classList.add('slideInUp'));
 }
 
 // 2. Função para ATUALIZAR o conteúdo do PRODUTO (itens que rotacionam)
 function updateContent(item) {
-    // Atualiza os itens rotativos
+    // Atualiza os itens rotativos (Selo, QR, etc)
     produtoImg.src = item.IMAGEM_PRODUTO_URL;
     descricaoTexto.textContent = item.NOME_PRODUTO;
     precoTexto.textContent = item.PRECO;
@@ -105,10 +105,10 @@ async function playEntranceAnimation() {
     
     // Animação em paralelo para economizar tempo
     produtoContainer.classList.add('slideInRight');
-    seloContainer.classList.add('slideInLeft'); // Selo entra com a descrição
+    seloContainer.classList.add('slideInLeft');
     descricaoContainer.classList.add('slideInLeft');
     qrcodeContainer.classList.add('slideInUp'); // QR entra de baixo
-    qrTextoContainer.classList.add('slideInUp'); // Seta entra de baixo JUNTO com o QR
+    // --- MUDANÇA: 'qrTextoContainer' removido desta animação ---
     
     await sleep(ANIMATION_DELAY); // Espera a animação principal
 
@@ -118,7 +118,7 @@ async function playEntranceAnimation() {
 
 // 4. Função para EXECUTAR a animação de SAÍDA do PRODUTO
 async function playExitAnimation() {
-    // Todos os 6 itens rotativos saem juntos
+    // --- MUDANÇA: Apenas os 5 itens rotativos saem ---
     elementosAnimadosProduto.forEach(el => {
         el.className = 'elemento-animado';
         el.classList.add('fadeOut');
