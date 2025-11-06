@@ -7,7 +7,7 @@
     --cor-texto-descricao: #FFFFFF; /* Branco */
     --cor-texto-preco: #FFFFFF; /* Branco */
     
-    /* NOVO: Cor da seta do QR Code */
+    /* Cor da seta do QR Code */
     --cor-seta-qr: #00A300; /* Verde padrão */
 }
 
@@ -85,8 +85,8 @@ body {
 #selo-container {
     top: 20%;
     left: 3%;
-    width: 50%; /* --- MUDANÇA: Selo maior (era 40%) --- */
-    height: 25%; /* --- MUDANÇA: Selo maior (era 20%) --- */
+    width: 55%; /* --- MUDANÇA: Selo MAIS maior (era 50%) --- */
+    height: 30%; /* --- MUDANÇA: Selo MAIS maior (era 25%) --- */
     z-index: 12; /* Na frente do produto */
 }
 #selo-img {
@@ -117,7 +117,7 @@ body {
 #descricao-container {
     top: 45%;
     left: 5%;
-    width: 40%; /* --- MUDANÇA: Um pouco mais largo */ 
+    width: 40%;
     height: 20%;
     display: flex;
     align-items: center;
@@ -155,15 +155,17 @@ body {
     line-height: 1;
 }
 
-/* NOVO: QR Code (Canto Inferior Esquerdo) */
+/* --- MUDANÇA: QR Code e Seta refeitos com 'vw' --- */
+
+/* QR Code (Canto Inferior Esquerdo) */
 #qrcode-container {
-    bottom: 3vh; /* --- MUDANÇA: Unidade vh para consistência */
-    left: 3vh; /* --- MUDANÇA: Unidade vh para consistência */
-    width: 18vh; /* Tamanho quadrado */
-    height: 18vh;
+    bottom: 5vh; /* 5% do fundo */
+    left: 5vw; /* 5% da esquerda */
+    width: 30vw; /* 30% da largura da tela */
+    height: 30vw; /* 30% da largura (para ser quadrado) */
     z-index: 10;
     background-color: white; /* Fundo branco para QR Code */
-    padding: 1vh;
+    padding: 1.5vw; /* Borda de 1.5% da largura */
     box-sizing: border-box;
 }
 #qrcode-img {
@@ -172,38 +174,41 @@ body {
     object-fit: contain;
 }
 
-/* NOVO: Caixa de Texto da Seta */
+/* Caixa de Texto da Seta */
 #qr-texto-container {
-    bottom: 8vh; /* --- MUDANÇA: Unidade vh para consistência */
-    left: 23vh; /* --- MUDANÇA: Posição CORRIGIDA (3vh do QR + 18vh do QR + 2vh de espaço) */
-    width: 45%; /* --- MUDANÇA: Um pouco mais largo */
+    bottom: 10vh; /* Posição Y (acima da base amarela) */
+    left: 38vw; /* Posição X (5vw do QR + 30vw do QR + 3vw de espaço) */
+    width: 55vw; /* Largura da caixa de texto */
     height: auto;
     background-color: var(--cor-seta-qr); /* Cor dinâmica */
     padding: 1.5vh 2vh;
     border-radius: 1vh;
-    position: relative; /* Necessário para a seta */
+    position: relative;
     z-index: 10;
 }
 /* A Seta (feita com CSS) */
 #qr-texto-container::before {
     content: "";
     position: absolute;
-    left: -2.8vh; /* Posição da seta */
     top: 50%;
     transform: translateY(-50%);
+    
+    /* --- MUDANÇA: Seta também baseada em 'vw' --- */
+    left: -2.8vw; /* Posição da seta */
     width: 0; 
     height: 0; 
-    border-top: 1.5vh solid transparent;
-    border-bottom: 1.5vh solid transparent;
-    border-right: 3vh solid var(--cor-seta-qr); /* Seta da mesma cor */
+    border-top: 1.5vw solid transparent;
+    border-bottom: 1.5vw solid transparent;
+    border-right: 3vw solid var(--cor-seta-qr); /* Seta da mesma cor */
 }
 #qr-texto {
     margin: 0;
     color: white;
-    font-size: 2.5vh;
+    font-size: 3vw; /* --- MUDANÇA: Fonte baseada na largura --- */
     font-weight: bold;
     text-align: center;
 }
+/* --- FIM DAS MUDANÇAS --- */
 
 
 /* --- ANIMAÇÕES (Mesmas de antes) --- */
