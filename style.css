@@ -50,7 +50,7 @@ body {
     left: 0;
     bottom: 0;
     width: 100%;
-    height: 20vh; 
+    height: 20vh; /* Altura da barra amarela */
     clip-path: ellipse(150% 100% at 50% 100%);
     box-shadow: 0 -1vh 2vh rgba(0,0,0,0.2); 
     z-index: 2; 
@@ -83,10 +83,10 @@ body {
 
 /* NOVO: Selo (Esquerda) */
 #selo-container {
-    top: 20%;
-    left: 3%;
-    width: 55%; /* --- MUDANÇA: Selo MAIS maior (era 50%) --- */
-    height: 30%; /* --- MUDANÇA: Selo MAIS maior (era 25%) --- */
+    top: 18%; /* --- MUDANÇA: Sobe um pouco */
+    left: 1%;
+    width: 65%; /* --- MUDANÇA: Selo 50% maior (era 55%) */
+    height: 35%; /* --- MUDANÇA: Selo 50% maior (era 30%) */
     z-index: 12; /* Na frente do produto */
 }
 #selo-img {
@@ -155,17 +155,18 @@ body {
     line-height: 1;
 }
 
-/* --- MUDANÇA: QR Code e Seta refeitos com 'vw' --- */
+
+/* --- MUDANÇA: QR Code e Seta REPOSICIONADOS para a barra amarela --- */
 
 /* QR Code (Canto Inferior Esquerdo) */
 #qrcode-container {
-    bottom: 5vh; /* 5% do fundo */
-    left: 5vw; /* 5% da esquerda */
-    width: 30vw; /* 30% da largura da tela */
-    height: 30vw; /* 30% da largura (para ser quadrado) */
+    bottom: 2vh; /* 2% de altura de baixo */
+    left: 4vw; /* 4% da largura da esquerda */
+    width: 15vh; /* 15% da altura (para ser quadrado) */
+    height: 15vh; /* 15% da altura */
     z-index: 10;
     background-color: white; /* Fundo branco para QR Code */
-    padding: 1.5vw; /* Borda de 1.5% da largura */
+    padding: 1vh; /* Borda de 1% */
     box-sizing: border-box;
 }
 #qrcode-img {
@@ -176,9 +177,9 @@ body {
 
 /* Caixa de Texto da Seta */
 #qr-texto-container {
-    bottom: 10vh; /* Posição Y (acima da base amarela) */
-    left: 38vw; /* Posição X (5vw do QR + 30vw do QR + 3vw de espaço) */
-    width: 55vw; /* Largura da caixa de texto */
+    bottom: 5vh; /* Posição Y (acima da base amarela) */
+    left: 22vh; /* Posição X (largura do QR + espaço) */
+    width: 60vw; /* Largura da caixa de texto */
     height: auto;
     background-color: var(--cor-seta-qr); /* Cor dinâmica */
     padding: 1.5vh 2vh;
@@ -193,18 +194,17 @@ body {
     top: 50%;
     transform: translateY(-50%);
     
-    /* --- MUDANÇA: Seta também baseada em 'vw' --- */
-    left: -2.8vw; /* Posição da seta */
+    left: -2.8vh; /* --- MUDANÇA: Seta baseada em vh */
     width: 0; 
     height: 0; 
-    border-top: 1.5vw solid transparent;
-    border-bottom: 1.5vw solid transparent;
-    border-right: 3vw solid var(--cor-seta-qr); /* Seta da mesma cor */
+    border-top: 1.5vh solid transparent;
+    border-bottom: 1.5vh solid transparent;
+    border-right: 3vh solid var(--cor-seta-qr); /* Seta da mesma cor */
 }
 #qr-texto {
     margin: 0;
     color: white;
-    font-size: 3vw; /* --- MUDANÇA: Fonte baseada na largura --- */
+    font-size: 2.8vh; /* --- MUDANÇA: Fonte baseada em vh */
     font-weight: bold;
     text-align: center;
 }
