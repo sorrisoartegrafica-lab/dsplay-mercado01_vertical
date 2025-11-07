@@ -1,13 +1,21 @@
-// script.js - Layout Final com MÉTODO CAIXINHA (Wrapper)
+// script.js - Versão COMERCIAL (com Parâmetro de API)
 
 // ##################################################################
-//  COLE A URL DA SUA API (DO GOOGLE APPS SCRIPT) AQUI
+//  MUDANÇA CRÍTICA: Lendo a API da URL
 // ##################################################################
-const API_URL = "https://script.google.com/macros/s/AKfycbwdo-HzLZF1-_cOOJAG9L79y59kNEpaH52fdp2nuVIAGif5A3XX-dWnZ8eXouev1xXYQg/exec"; 
+
+// 1. Pega os parâmetros da URL da página (ex: ...?api=https://...)
+const queryParams = new URLSearchParams(window.location.search);
+
+// 2. Pega a URL da API do parâmetro chamado 'api'
+const API_URL = queryParams.get('api');
+
 // ##################################################################
+
 
 // --- Chave para o Cache ---
-const CACHE_KEY = 'supermercado_api_cache';
+// MUDANÇA: O cache agora é baseado na URL da API
+const CACHE_KEY = `supermercado_api_cache_${API_URL}`;
 
 // --- Configuração dos Dados (AGORA VAZIOS, VIRÃO DA API OU CACHE) ---
 let configMercado = {};
@@ -21,6 +29,7 @@ const produtoContainer = document.getElementById('produto-container');
 const descricaoContainer = document.getElementById('descricao-container');
 const precoContainer = document.getElementById('preco-container');
 const seloContainer = document.getElementById('selo-container');
+// NOVO: A caixinha principal
 const infoInferiorWrapper = document.getElementById('info-inferior-wrapper');
 
 
@@ -29,6 +38,7 @@ const produtoImg = document.getElementById('produto-img');
 const descricaoTexto = document.getElementById('descricao-texto');
 const precoTexto = document.getElementById('preco-texto');
 const seloImg = document.getElementById('selo-img');
+// Itens dentro da caixinha
 const qrcodeImg = document.getElementById('qrcode-img');
 const qrTexto = document.getElementById('qr-texto');
 
@@ -96,7 +106,7 @@ function updateContent(item) {
     precoContainer.style.animation = `typewriter ${duration}s steps(${steps}) forwards`;
 }
 
-// 3. --- MUDANÇA CRÍTICA: Sincronia da Animação de ENTRADA ---
+// 3. Sincronia da Animação de ENTRADA
 async function playEntranceAnimation() {
     // Remove o 'fadeOut' de todos os 5 elementos
     elementosAnimadosProduto.forEach(el => el.classList.remove('fadeOut'));
@@ -122,7 +132,6 @@ async function playExitAnimation() {
     await sleep(EXIT_ANIMATION_DURATION);
     elementosAnimadosProduto.forEach(el => el.classList.add('hidden'));
 }
-// --- FIM DA MUDANÇA ---
 
 // 5. Roda a "Micro-Rotação" (os 3 produtos)
 function runInternalRotation(items) {
@@ -142,6 +151,16 @@ function runInternalRotation(items) {
 
 // 6. FUNÇÃO DE INICIALIZAÇÃO (Lógica de Cache)
 async function init() {
+    
+    // --- MUDANÇA: Verificação da API ---
+    if (!API_URL) {
+        console.error("Erro: URL da API não fornecida na URL da página.");
+        console.error("Use: .../index.html?api=SUA_URL_DA_API_AQUI");
+        // Mostra um erro na tela do player
+        document.body.innerHTML = `<h1 style="color: red; font-family: Arial;">Erro de Configuração: URL da API não encontrada.</h1><p style="color: white; font-family: Arial;">Adicione <strong>?api=[SUA_URL_DA_API]</strong> ao final da URL no DSPLAY.</p>`;
+        return;
+    }
+    
     let cachedData = null;
     try {
         const cachedString = localStorage.getItem(CACHE_KEY);
@@ -168,7 +187,7 @@ async function init() {
             }
         } catch (error) {
             console.error("Erro no init() sem cache:", error);
-            descricaoTexto.textContent = "Erro ao carregar API.";
+            document.body.innerHTML = `<h1 style="color: red; font-family: Arial;">Erro ao Carregar API</h1><p style="color: white; font-family: Arial;">Verifique a URL da API e a conexão de rede.<br>API: ${API_URL}</p>`;
         }
     }
 }
@@ -202,32 +221,38 @@ function runTemplate(data) {
         
         if (!produtos || produtos.length === 0) {
             console.error("Nenhum produto nos dados.");
-            descricaoTexto.textContent = "Erro: Nenhum produto na planilha.";
-            return;
+            // Não pare aqui, apenas mostre um aviso (o cache pode estar vazio)
         }
 
         // Aplica todos os itens estáticos (Logo, Texto do QR, Cores)
         applyConfig(configMercado);
         
-        const totalBatches = Math.ceil(produtos.length / PRODUTOS_POR_LOTE);
-        const savedBatchIndex = parseInt(localStorage.getItem('ultimo_lote_promo') || 0);
-        const currentBatchIndex = savedBatchIndex % totalBatches;
-        const nextBatchIndex = (currentBatchIndex + 1) % totalBatches;
-        localStorage.setItem('ultimo_lote_promo', nextBatchIndex);
+        // Só roda a rotação se tiver produtos
+        if (produtos && produtos.length > 0) {
+            const totalBatches = Math.ceil(produtos.length / PRODUTOS_POR_LOTE);
+            const savedBatchIndex = parseInt(localStorage.getItem('ultimo_lote_promo') || 0);
+            const currentBatchIndex = savedBatchIndex % totalBatches;
+            const nextBatchIndex = (currentBatchIndex + 1) % totalBatches;
+            localStorage.setItem('ultimo_lote_promo', nextBatchIndex);
 
-        const startIndex = currentBatchIndex * PRODUTOS_POR_LOTE;
-        const itemsToShow = [
-            produtos[startIndex], 
-            produtos[startIndex + 1], 
-            produtos[startIndex + 2]
-        ].filter(Boolean); 
+            const startIndex = currentBatchIndex * PRODUTOS_POR_LOTE;
+            const itemsToShow = [
+                produtos[startIndex], 
+                produtos[startIndex + 1], 
+                produtos[startIndex + 2]
+            ].filter(Boolean); 
 
-        // Inicia a rotação dos itens dinâmicos
-        runInternalRotation(itemsToShow);
+            // Inicia a rotação dos itens dinâmicos
+            runInternalRotation(itemsToShow);
+        } else {
+            // Mostra um aviso se a planilha estiver vazia
+            descricaoTexto.textContent = "Nenhum produto cadastrado.";
+            descricaoContainer.classList.add('slideInLeft');
+        }
 
     } catch (error) {
         console.error("Erro ao executar o template:", error);
-        descricaoTexto.textContent = "Erro ao exibir dados.";
+        document.body.innerHTML = `<h1 style="color: red; font-family: Arial;">Erro ao ler dados da planilha.</h1><p style="color: white; font-family: Arial;">Verifique se a planilha está formatada corretamente.</p>`;
     }
 }
 
@@ -235,14 +260,16 @@ function runTemplate(data) {
 function preloadImages(produtosArray, config) {
     console.log("Iniciando pré-carregamento de imagens...");
     // Pré-carrega imagens dos produtos (Produto, Selo, QR)
-    produtosArray.forEach(produto => {
-        if (produto.IMAGEM_PRODUTO_URL) (new Image()).src = produto.IMAGEM_PRODUTO_URL;
-        if (produto.SELO_URL) (new Image()).src = produto.SELO_URL;
-        if (produto.QR_CODE_URL) (new Image()).src = produto.QR_CODE_URL;
-    });
+    if (produtosArray) {
+        produtosArray.forEach(produto => {
+            if (produto.IMAGEM_PRODUTO_URL) (new Image()).src = produto.IMAGEM_PRODUTO_URL;
+            if (produto.SELO_URL) (new Image()).src = produto.SELO_URL;
+            if (produto.QR_CODE_URL) (new Image()).src = produto.QR_CODE_URL;
+        });
+    }
     
     // Pré-carrega imagem da config (Logo)
-    if (config.LOGO_MERCADO_URL) (new Image()).src = config.LOGO_MERCADO_URL;
+    if (config && config.LOGO_MERCADO_URL) (new Image()).src = config.LOGO_MERCADO_URL;
 }
 
 // Inicia tudo
