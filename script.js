@@ -1,20 +1,16 @@
-// script.js - Versão COMERCIAL (com Parâmetro de API)
+// script.js - Versão HÍBRIDA (Automático + Manual via URL)
 
 // ##################################################################
-//  MUDANÇA CRÍTICA: Lendo a API da URL
+//  Lendo a API e o Lote (Batch) da URL
 // ##################################################################
-
-// 1. Pega os parâmetros da URL da página (ex: ...?api=https://...)
 const queryParams = new URLSearchParams(window.location.search);
-
-// 2. Pega a URL da API do parâmetro chamado 'api'
 const API_URL = queryParams.get('api');
-
+// NOVO: Pega o parâmetro 'videos' (ex: &videos=2)
+const loteManual = queryParams.get('videos'); 
 // ##################################################################
 
 
 // --- Chave para o Cache ---
-// MUDANÇA: O cache agora é baseado na URL da API
 const CACHE_KEY = `supermercado_api_cache_${API_URL}`;
 
 // --- Configuração dos Dados (AGORA VAZIOS, VIRÃO DA API OU CACHE) ---
@@ -29,7 +25,6 @@ const produtoContainer = document.getElementById('produto-container');
 const descricaoContainer = document.getElementById('descricao-container');
 const precoContainer = document.getElementById('preco-container');
 const seloContainer = document.getElementById('selo-container');
-// NOVO: A caixinha principal
 const infoInferiorWrapper = document.getElementById('info-inferior-wrapper');
 
 
@@ -38,7 +33,6 @@ const produtoImg = document.getElementById('produto-img');
 const descricaoTexto = document.getElementById('descricao-texto');
 const precoTexto = document.getElementById('preco-texto');
 const seloImg = document.getElementById('selo-img');
-// Itens dentro da caixinha
 const qrcodeImg = document.getElementById('qrcode-img');
 const qrTexto = document.getElementById('qr-texto');
 
@@ -60,7 +54,7 @@ const PRODUTOS_POR_LOTE = 3; // Mostrar 3 produtos
 const DURACAO_TOTAL_SLOT = 15000; // 15 segundos
 const DURACAO_POR_PRODUTO = DURACAO_TOTAL_SLOT / PRODUTOS_POR_LOTE; // 5000ms (5s) por produto
 
-const ANIMATION_DELAY = 1000; // 1 segundo (dando mais tempo para a animação do preço)
+const ANIMATION_DELAY = 1000; // 1 segundo
 const EXIT_ANIMATION_DURATION = 500; // 0.5s
 
 function sleep(ms) {
@@ -100,7 +94,6 @@ function updateContent(item) {
     precoContainer.style.animation = 'none'; 
     
     const steps = (item.PRECO && item.PRECO.length > 0) ? item.PRECO.length : 1;
-    // Duração da animação do preço
     const duration = (steps * 0.15 < 1) ? steps * 0.15 : 1; // Máx de 1s
     
     precoContainer.style.animation = `typewriter ${duration}s steps(${steps}) forwards`;
@@ -108,23 +101,19 @@ function updateContent(item) {
 
 // 3. Sincronia da Animação de ENTRADA
 async function playEntranceAnimation() {
-    // Remove o 'fadeOut' de todos os 5 elementos
     elementosAnimadosProduto.forEach(el => el.classList.remove('fadeOut'));
     
-    // Inicia TODAS as animações ao mesmo tempo (em paralelo)
     produtoContainer.classList.add('slideInRight');
     seloContainer.classList.add('slideInLeft');
     descricaoContainer.classList.add('slideInLeft');
     infoInferiorWrapper.classList.add('slideInUp'); // A "Caixinha" inteira
     precoContainer.classList.add('typewriter'); // Preço entra JUNTO
     
-    // Apenas espera o tempo da animação mais longa (1s)
     await sleep(ANIMATION_DELAY); 
 }
 
 // 4. Função para EXECUTAR a animação de SAÍDA do PRODUTO
 async function playExitAnimation() {
-    // Todos os 5 itens rotativos saem juntos
     elementosAnimadosProduto.forEach(el => {
         el.className = 'elemento-animado';
         el.classList.add('fadeOut');
@@ -152,11 +141,8 @@ function runInternalRotation(items) {
 // 6. FUNÇÃO DE INICIALIZAÇÃO (Lógica de Cache)
 async function init() {
     
-    // --- MUDANÇA: Verificação da API ---
     if (!API_URL) {
         console.error("Erro: URL da API não fornecida na URL da página.");
-        console.error("Use: .../index.html?api=SUA_URL_DA_API_AQUI");
-        // Mostra um erro na tela do player
         document.body.innerHTML = `<h1 style="color: red; font-family: Arial;">Erro de Configuração: URL da API não encontrada.</h1><p style="color: white; font-family: Arial;">Adicione <strong>?api=[SUA_URL_DA_API]</strong> ao final da URL no DSPLAY.</p>`;
         return;
     }
@@ -213,7 +199,7 @@ async function fetchFromNetwork() {
     }
 }
 
-// 8. Lógica de exibição
+// 8. --- MUDANÇA CRÍTICA: Lógica de Lote (Híbrida) ---
 function runTemplate(data) {
     try {
         configMercado = data.configMercado;
@@ -221,20 +207,41 @@ function runTemplate(data) {
         
         if (!produtos || produtos.length === 0) {
             console.error("Nenhum produto nos dados.");
-            // Não pare aqui, apenas mostre um aviso (o cache pode estar vazio)
         }
 
         // Aplica todos os itens estáticos (Logo, Texto do QR, Cores)
         applyConfig(configMercado);
         
-        // Só roda a rotação se tiver produtos
         if (produtos && produtos.length > 0) {
+            
             const totalBatches = Math.ceil(produtos.length / PRODUTOS_POR_LOTE);
-            const savedBatchIndex = parseInt(localStorage.getItem('ultimo_lote_promo') || 0);
-            const currentBatchIndex = savedBatchIndex % totalBatches;
-            const nextBatchIndex = (currentBatchIndex + 1) % totalBatches;
-            localStorage.setItem('ultimo_lote_promo', nextBatchIndex);
+            let currentBatchIndex = 0; // Padrão é Lote 1 (índice 0)
 
+            // Verifica se o usuário 'travou' um lote na URL
+            if (loteManual && !isNaN(parseInt(loteManual))) {
+                // MODO MANUAL
+                console.log(`Modo Manual: Forçando lote ${loteManual}`);
+                // Converte (usuário digita '1', '2', '3', mas o array é '0', '1', '2')
+                currentBatchIndex = parseInt(loteManual) - 1;
+
+                // Trava de segurança para valores inválidos
+                if (currentBatchIndex < 0 || currentBatchIndex >= totalBatches) {
+                    currentBatchIndex = 0; // Volta ao lote 1
+                }
+                // NÃO SALVA NADA no localStorage.
+
+            } else {
+                // MODO AUTOMÁTICO (rotação)
+                console.log("Modo Automático: Rotacionando lotes.");
+                const savedBatchIndex = parseInt(localStorage.getItem('ultimo_lote_promo') || 0);
+                currentBatchIndex = savedBatchIndex % totalBatches;
+                
+                // Prepara o PRÓXIMO lote para a próxima vez
+                const nextBatchIndex = (currentBatchIndex + 1) % totalBatches;
+                localStorage.setItem('ultimo_lote_promo', nextBatchIndex);
+            }
+
+            // Pega os 3 produtos do lote escolhido (manual ou automático)
             const startIndex = currentBatchIndex * PRODUTOS_POR_LOTE;
             const itemsToShow = [
                 produtos[startIndex], 
@@ -244,6 +251,7 @@ function runTemplate(data) {
 
             // Inicia a rotação dos itens dinâmicos
             runInternalRotation(itemsToShow);
+
         } else {
             // Mostra um aviso se a planilha estiver vazia
             descricaoTexto.textContent = "Nenhum produto cadastrado.";
@@ -255,6 +263,8 @@ function runTemplate(data) {
         document.body.innerHTML = `<h1 style="color: red; font-family: Arial;">Erro ao ler dados da planilha.</h1><p style="color: white; font-family: Arial;">Verifique se a planilha está formatada corretamente.</p>`;
     }
 }
+// --- FIM DA MUDANÇA ---
+
 
 // 9. Pré-carregamento de Imagens
 function preloadImages(produtosArray, config) {
