@@ -1,5 +1,5 @@
 // script.js - Versão HÍBRIDA (Automático + Manual via URL)
-// ATUALIZADO PARA LER DA API DO BUBBLE.IO (COM NOMES DO BANCO DE DADOS)
+// ATUALIZADO FINAL - Mapeando os nomes exatos do JSON do Bubble.io
 
 // ##################################################################
 //  Lendo a API e o Lote (Batch) da URL
@@ -62,15 +62,15 @@ function sleep(ms) {
 
 // 1. Função para APLICAR A CONFIGURAÇÃO DO MERCADO (Itens Estáticos)
 function applyConfig(config) {
-    // ############ MUDANÇA BUBBLE.IO ############
-    // Mapeando os nomes do seu DB (ex: "Cor_1_text") para os nomes que o CSS espera.
-    document.documentElement.style.setProperty('--cor-fundo-principal', config.Cor_1_text);
-    document.documentElement.style.setProperty('--cor-fundo-secundario', config.Cor_2_text);
-    document.documentElement.style.setProperty('--cor-texto-descricao', config.Cor_texto_1_text);
-    document.documentElement.style.setProperty('--cor-texto-preco', config.Cor_texto_2_text);
+    // ############ MUDANÇA BUBBLE.IO (Mapeamento Final) ############
+    // Mapeando os nomes do seu DB (ex: "cor_fundo_text") para os nomes que o CSS espera.
+    document.documentElement.style.setProperty('--cor-fundo-principal', config.cor_fundo_text);
+    document.documentElement.style.setProperty('--cor-fundo-secundario', config.cor_2_text);
+    document.documentElement.style.setProperty('--cor-texto-descricao', config.cor_texto_1_text);
+    document.documentElement.style.setProperty('--cor-texto-preco', config.cor_texto_2_text);
     
-    // ATENÇÃO: Adicione os campos 'LOGO_MERCADO_URL' e 'QR_COR_SETA' (tipo text)
-    // na sua tabela 'Cliente' no Bubble.
+    // ATENÇÃO: Estes campos (LOGO_MERCADO_URL e QR_COR_SETA)
+    // PRECISAM existir na sua tabela 'Cliente' no Bubble.
     logoImg.src = config.LOGO_MERCADO_URL_text; 
     document.documentElement.style.setProperty('--cor-seta-qr', config.QR_COR_SETA_text || '#00A300');
     // ############ FIM DA MUDANÇA ############
@@ -81,13 +81,16 @@ function applyConfig(config) {
 
 // 2. Função para ATUALIZAR o conteúdo do PRODUTO (itens que rotacionam)
 function updateContent(item) {
-    // ############ MUDANÇA BUBBLE.IO ############
+    // ############ MUDANÇA BUBBLE.IO (Mapeamento Final) ############
     // Mapeando os nomes dos campos do seu 'produto'
-    produtoImg.src = item.imagem_produto_text;
+    // O JSON do Bubble adiciona "http:" ou "https:" automaticamente se começar com //
+    const prefixoURL = 'https:';
+    
+    produtoImg.src = prefixoURL + item.imagem_produto_text;
     descricaoTexto.textContent = item.nome_text;
-    precoTexto.textContent = item.valor_text; // 'valor_text' no lugar de 'PRECO'
-    seloImg.src = item.selo_produto_text;
-    qrcodeImg.src = item.t_qr_produto_text;
+    precoTexto.textContent = item.valor_text;
+    seloImg.src = prefixoURL + item.selo_produto_text;
+    qrcodeImg.src = prefixoURL + item.t_qr_produto_text;
     
     // LÓGICA MOVIDA: O texto do QR agora é por produto.
     qrTexto.textContent = item.texto_qr_text; 
@@ -286,11 +289,12 @@ function preloadImages(produtosArray, config) {
     console.log("Iniciando pré-carregamento de imagens...");
     // Pré-carrega imagens dos produtos (Produto, Selo, QR)
     if (produtosArray) {
-        // ############ MUDANÇA BUBBLE.IO ############
+        // ############ MUDANÇA BUBBLE.IO (Mapeamento Final) ############
+        const prefixoURL = 'https:';
         produtosArray.forEach(produto => {
-            if (produto.imagem_produto_text) (new Image()).src = produto.imagem_produto_text;
-            if (produto.selo_produto_text) (new Image()).src = produto.selo_produto_text;
-            if (produto.t_qr_produto_text) (new Image()).src = produto.t_qr_produto_text;
+            if (produto.imagem_produto_text) (new Image()).src = prefixoURL + produto.imagem_produto_text;
+            if (produto.selo_produto_text) (new Image()).src = prefixoURL + produto.selo_produto_text;
+            if (produto.t_qr_produto_text) (new Image()).src = prefixoURL + produto.t_qr_produto_text;
         });
     }
     
