@@ -62,17 +62,20 @@ function sleep(ms) {
 
 // 1. Função para APLICAR A CONFIGURAÇÃO DO MERCADO (Itens Estáticos)
 function applyConfig(config) {
-    // ############ MUDANÇA BUBBLE.IO (Mapeamento Final) ############
+    // ############ MUDANÇA BUBBLE.IO (Mapeamento Final - MINÚSCULAS) ############
     // Mapeando os nomes do seu DB (ex: "cor_fundo_text") para os nomes que o CSS espera.
     document.documentElement.style.setProperty('--cor-fundo-principal', config.cor_fundo_text);
     document.documentElement.style.setProperty('--cor-fundo-secundario', config.cor_2_text);
     document.documentElement.style.setProperty('--cor-texto-descricao', config.cor_texto_1_text);
     document.documentElement.style.setProperty('--cor-texto-preco', config.cor_texto_2_text);
     
-    // ATENÇÃO: Estes campos (LOGO_MERCADO_URL e QR_COR_SETA)
-    // PRECISAM existir na sua tabela 'Cliente' no Bubble.
-    logoImg.src = config.LOGO_MERCADO_URL_text; 
-    document.documentElement.style.setProperty('--cor-seta-qr', config.QR_COR_SETA_text || '#00A300');
+    // CORREÇÃO: Usando os nomes em MINÚSCULAS que a API envia.
+    const prefixoURL = 'https:';
+    if (config.logo_mercado_url_text) { // <-- CORRIGIDO (minúsculas)
+        logoImg.src = prefixoURL + config.logo_mercado_url_text; // <-- CORRIGIDO (minúsculas)
+    }
+    
+    document.documentElement.style.setProperty('--cor-seta-qr', config.qr_cor_seta_text || '#00A300'); // <-- CORRIGIDO (minúsculas)
     // ############ FIM DA MUDANÇA ############
 
     // Anima a entrada do logo (o único item estático)
@@ -305,3 +308,4 @@ function preloadImages(produtosArray, config) {
 
 // Inicia tudo
 document.addEventListener('DOMContentLoaded', init);
+
