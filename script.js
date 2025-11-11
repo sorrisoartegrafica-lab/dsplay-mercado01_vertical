@@ -1,18 +1,18 @@
-// script.js - Versão HÍBRIDA (Automático + Manual via URL)
-// ATUALIZADO FINAL - Mapeando os nomes exatos do JSON do Bubble.io
+// script.js - ATUALIZADO PARA API INTELIGENTE (video_mercado)
+// Mapeando os nomes exatos do JSON do Bubble.io
 
 // ##################################################################
 //  Lendo a API e o Lote (Batch) da URL
 // ##################################################################
 const queryParams = new URLSearchParams(window.location.search);
-const API_URL = queryParams.get('api');
-// NOVO: Pega o parâmetro 'videos' (ex: &videos=2)
-const loteManual = queryParams.get('videos');
+const API_URL_BASE = queryParams.get('api'); // URL da API (só com client_id)
+const loteManual = queryParams.get('videos'); // O grupo de vídeo (ex: 1, 2, 3...)
 // ##################################################################
 
 
 // --- Chave para o Cache ---
-const CACHE_KEY = `supermercado_api_cache_${API_URL}`;
+// O cache agora depende do lote, para não misturar os vídeos
+const CACHE_KEY = `supermercado_api_cache_${API_URL_BASE}_lote_${loteManual || 'auto'}`;
 // --- Configuração dos Dados (AGORA VAZIOS, VIRÃO DA API OU CACHE) ---
 let configMercado = {};
 let produtos = [];
@@ -47,10 +47,11 @@ const elementosAnimadosProduto = [
     infoInferiorWrapper // A "CAIXINHA" inteira
 ];
 // --- Constantes de Tempo ---
-const PRODUTOS_POR_LOTE = 3; // Mostrar 3 produtos
+// const PRODUTOS_POR_LOTE = 3; // Não é mais necessário, a API define isso
 const DURACAO_TOTAL_SLOT = 15000;
 // 15 segundos
-const DURACAO_POR_PRODUTO = DURACAO_TOTAL_SLOT / PRODUTOS_POR_LOTE; // 5000ms (5s) por produto
+// ATENÇÃO: Esta lógica agora assume que a API *sempre* retorna 3 produtos
+const DURACAO_POR_PRODUTO = DURACAO_TOTAL_SLOT / 3; // 5000ms (5s) por produto
 
 const ANIMATION_DELAY = 1000;
 // 1 segundo
@@ -62,7 +63,6 @@ function sleep(ms) {
 
 // 1. Função para APLICAR A CONFIGURAÇÃO DO MERCADO (Itens Estáticos)
 function applyConfig(config) {
-    // ############ MUDANÇA BUBBLE.IO (Mapeamento Final - MINÚSCULAS) ############
     // Mapeando os nomes do seu DB (ex: "cor_fundo_text") para os nomes que o CSS espera.
     document.documentElement.style.setProperty('--cor-fundo-principal', config.cor_fundo_text);
     document.documentElement.style.setProperty('--cor-fundo-secundario', config.cor_2_text);
@@ -71,22 +71,15 @@ function applyConfig(config) {
     
     // CORREÇÃO: Usando os nomes em MINÚSCULAS que a API envia.
     const prefixoURL = 'https:';
-    if (config.logo_mercado_url_text) { // <-- CORRIGIDO (minúsculas)
-        logoImg.src = prefixoURL + config.logo_mercado_url_text; // <-- CORRIGIDO (minúsculas)
+    if (config.logo_mercado_url_text) { 
+        logoImg.src = prefixoURL + config.logo_mercado_url_text; 
     }
     
-    document.documentElement.style.setProperty('--cor-seta-qr', config.qr_cor_seta_text || '#00A300'); // <-- CORRIGIDO (minúsculas)
-    // ############ FIM DA MUDANÇA ############
-
-    // Anima a entrada do logo (o único item estático)
-    elementosEstaticosAnimados.forEach(el => el.classList.add('slideInUp'));
+    document.documentElement.style.setProperty('--cor-seta-qr', config.qr_cor_seta_text || '#00A300'); 
 }
 
 // 2. Função para ATUALIZAR o conteúdo do PRODUTO (itens que rotacionam)
 function updateContent(item) {
-    // ############ MUDANÇA BUBBLE.IO (Mapeamento Final) ############
-    // Mapeando os nomes dos campos do seu 'produto'
-    // O JSON do Bubble adiciona "http:" ou "https:" automaticamente se começar com //
     const prefixoURL = 'https:';
     
     produtoImg.src = prefixoURL + item.imagem_produto_text;
@@ -94,10 +87,7 @@ function updateContent(item) {
     precoTexto.textContent = item.valor_text;
     seloImg.src = prefixoURL + item.selo_produto_text;
     qrcodeImg.src = prefixoURL + item.t_qr_produto_text;
-    
-    // LÓGICA MOVIDA: O texto do QR agora é por produto.
     qrTexto.textContent = item.texto_qr_text; 
-    // ############ FIM DA MUDANÇA ############
 
     // Prepara a animação de máquina de escrever
     const precoElement = document.getElementById('preco-texto');
@@ -105,13 +95,8 @@ function updateContent(item) {
     void precoContainer.offsetWidth;
     precoContainer.style.animation = 'none'; 
     
-    // ############ MUDANÇA BUBBLE.IO ############
-    // Lendo o 'valor_text' para animar
     const steps = (item.valor_text && item.valor_text.length > 0) ? item.valor_text.length : 1;
-    // ############ FIM DA MUDANÇA ############
-    
     const duration = (steps * 0.15 < 1) ? steps * 0.15 : 1;
-    // Máx de 1s
     
     precoContainer.style.animation = `typewriter ${duration}s steps(${steps}) forwards`;
 }
@@ -124,8 +109,7 @@ async function playEntranceAnimation() {
     seloContainer.classList.add('slideInLeft');
     descricaoContainer.classList.add('slideInLeft');
     infoInferiorWrapper.classList.add('slideInUp');
-    // A "Caixinha" inteira
-    precoContainer.classList.add('typewriter'); // Preço entra JUNTO
+    precoContainer.classList.add('typewriter'); 
     
     await sleep(ANIMATION_DELAY);
 }
@@ -143,6 +127,8 @@ async function playExitAnimation() {
 // 5. Roda a "Micro-Rotação" (os 3 produtos)
 function runInternalRotation(items) {
     async function showNextProduct(subIndex) {
+        // A lógica de fatiamento foi removida.
+        // A API agora entrega *exatamente* os 3 itens (ou menos) que queremos.
         const item = items[subIndex % items.length];
         if (subIndex > 0) {
             await playExitAnimation();
@@ -159,11 +145,20 @@ function runInternalRotation(items) {
 // 6. FUNÇÃO DE INICIALIZAÇÃO (Lógica de Cache)
 async function init() {
     
-    if (!API_URL) {
+    if (!API_URL_BASE) {
         console.error("Erro: URL da API não fornecida na URL da página.");
         document.body.innerHTML = `<h1 style="color: red; font-family: Arial;">Erro de Configuração: URL da API não encontrada.</h1><p style="color: white; font-family: Arial;">Adicione <strong>?api=[SUA_URL_DA_API]</strong> ao final da URL no DSPLAY.</p>`;
         return;
     }
+
+    // ############ MUDANÇA BUBBLE.IO (Lógica Inteligente) ############
+    // O parâmetro 'videos' é OBRIGATÓRIO para esta lógica funcionar
+    if (!loteManual) {
+        console.error("Erro: Parâmetro 'videos' (ex: &videos=1) não encontrado na URL.");
+        document.body.innerHTML = `<h1 style="color: red; font-family: Arial;">Erro de Configuração: Lote de vídeo não encontrado.</h1><p style="color: white; font-family: Arial;">Adicione <strong>&videos=[NUMERO_DO_GRUPO]</strong> ao final da URL.</p>`;
+        return;
+    }
+    // ############ FIM DA MUDANÇA ############
     
     let cachedData = null;
     try {
@@ -192,7 +187,7 @@ async function init() {
             }
         } catch (error) {
             console.error("Erro no init() sem cache:", error);
-            document.body.innerHTML = `<h1 style="color: red; font-family: Arial;">Erro ao Carregar API</h1><p style="color: white; font-family: Arial;">Verifique a URL da API e a conexão de rede.<br>API: ${API_URL}</p>`;
+            document.body.innerHTML = `<h1 style="color: red; font-family: Arial;">Erro ao Carregar API</h1><p style="color: white; font-family: Arial;">Verifique a URL da API e a conexão de rede.<br>API: ${API_URL_BASE}</p>`;
         }
     }
 }
@@ -200,18 +195,22 @@ async function init() {
 // 7. Busca dados da rede e salva no cache
 async function fetchFromNetwork() {
     try {
-        const response = await fetch(API_URL);
+        // ############ MUDANÇA BUBBLE.IO (Lógica Inteligente) ############
+        // Anexa o parâmetro &videos=X (lido de loteManual) à URL da API
+        const finalApiUrl = `${API_URL_BASE}&videos=${loteManual}`;
+        console.log("Buscando dados da API: ", finalApiUrl);
+        // ############ FIM DA MUDANÇA ############
+
+        const response = await fetch(finalApiUrl); // Chama a URL final
         if (!response.ok) throw new Error('Resposta da rede não foi OK');
         const data = await response.json();
         
         localStorage.setItem(CACHE_KEY, JSON.stringify(data));
         console.log("Cache atualizado com novos dados da rede.");
 
-        // ############ MUDANÇA BUBBLE.IO (lendo de data.response) ############
         if (data.response && data.response.produtos) {
             preloadImages(data.response.produtos, data.response.configMercado);
         }
-        // ############ FIM DA MUDANÇA ############
         
         return data;
     } catch (error) {
@@ -223,10 +222,8 @@ async function fetchFromNetwork() {
 // 8. --- MUDANÇA CRÍTICA: Lógica de Lote (Híbrida) ---
 function runTemplate(data) {
     try {
-        // ############ MUDANÇA BUBBLE.IO (lendo de data.response) ############
         configMercado = data.response.configMercado;
         produtos = data.response.produtos;
-        // ############ FIM DA MUDANÇA ############
         
         if (!configMercado || !produtos || produtos.length === 0) {
              if (!configMercado) console.error("configMercado está nulo ou indefinido.");
@@ -239,38 +236,12 @@ function runTemplate(data) {
         applyConfig(configMercado);
         if (produtos && produtos.length > 0) {
             
-            const totalBatches = Math.ceil(produtos.length / PRODUTOS_POR_LOTE);
-            let currentBatchIndex = 0; // Padrão é Lote 1 (índice 0)
+            // ############ MUDANÇA BUBBLE.IO (Lógica Inteligente) ############
+            // A lógica de "fatiamento" (slice) foi REMOVIDA.
+            // A API já entrega os 3 produtos corretos (ou menos).
+            const itemsToShow = produtos.filter(Boolean);
+            // ############ FIM DA MUDANÇA ############
 
-            // Verifica se o usuário 'travou' um lote na URL
-            if (loteManual && !isNaN(parseInt(loteManual))) {
-                // MODO MANUAL
-                console.log(`Modo Manual: Forçando lote ${loteManual}`);
-                // Converte (usuário digita '1', '2', '3', mas o array é '0', '1', '2')
-                currentBatchIndex = parseInt(loteManual) - 1;
-                // Trava de segurança para valores inválidos
-                if (currentBatchIndex < 0 || currentBatchIndex >= totalBatches) {
-                    currentBatchIndex = 0;
-                    // Volta ao lote 1
-                }
-                // NÃO SALVA NADA no localStorage.
-            } else {
-                // MODO AUTOMÁTICO (rotação)
-                console.log("Modo Automático: Rotacionando lotes.");
-                const savedBatchIndex = parseInt(localStorage.getItem('ultimo_lote_promo') || 0);
-                currentBatchIndex = savedBatchIndex % totalBatches;
-                // Prepara o PRÓXIMO lote para a próxima vez
-                const nextBatchIndex = (currentBatchIndex + 1) % totalBatches;
-                localStorage.setItem('ultimo_lote_promo', nextBatchIndex);
-            }
-
-            // Pega os 3 produtos do lote escolhido (manual ou automático)
-            const startIndex = currentBatchIndex * PRODUTOS_POR_LOTE;
-            const itemsToShow = [
-                produtos[startIndex], 
-                produtos[startIndex + 1], 
-                produtos[startIndex + 2]
-            ].filter(Boolean);
             // Inicia a rotação dos itens dinâmicos
             runInternalRotation(itemsToShow);
         } else {
@@ -290,11 +261,10 @@ function runTemplate(data) {
 // 9. Pré-carregamento de Imagens
 function preloadImages(produtosArray, config) {
     console.log("Iniciando pré-carregamento de imagens...");
-    const prefixoURL = 'https:'; // Adicionado prefixo aqui
+    const prefixoURL = 'https:'; 
     
     // Pré-carrega imagens dos produtos (Produto, Selo, QR)
     if (produtosArray) {
-        // ############ MUDANÇA BUBBLE.IO (Mapeamento Final - MINÚSCULAS) ############
         produtosArray.forEach(produto => {
             if (produto.imagem_produto_text) (new Image()).src = prefixoURL + produto.imagem_produto_text;
             if (produto.selo_produto_text) (new Image()).src = prefixoURL + produto.selo_produto_text;
@@ -303,10 +273,9 @@ function preloadImages(produtosArray, config) {
     }
     
     // Pré-carrega imagem da config (Logo)
-    if (config && config.logo_mercado_url_text) { // <-- CORRIGIDO (minúsculas)
-        (new Image()).src = prefixoURL + config.logo_mercado_url_text; // <-- CORRIGIDO (minúsculas)
+    if (config && config.logo_mercado_url_text) { 
+        (new Image()).src = prefixoURL + config.logo_mercado_url_text; 
     }
-    // ############ FIM DA MUDANÇA ############
 }
 
 // Inicia tudo
