@@ -62,7 +62,7 @@ body {
     position: absolute;
     opacity: 0; 
     box-sizing: border-box;
-    z-index: 10; 
+    z-index: 12; 
 }
 
 /* Logo (Canto Superior Direito) */
@@ -259,3 +259,4 @@ body {
 @media (orientation: landscape) {
     /* Layout horizontal ainda precisa ser feito */
 }
+
