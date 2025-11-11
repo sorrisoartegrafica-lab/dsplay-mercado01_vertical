@@ -1,276 +1,303 @@
-/* style.css - Layout Final */
+// script.js - ATUALIZADO PARA API INTELIGENTE (video_mercado)
+// Mapeando os nomes exatos do JSON do Bubble.io
 
-:root {
-    /* Variáveis CSS para as cores dinâmicas (serão preenchidas pelo JS) */
-    --cor-fundo-principal: #D90404; /* Vermelho */
-    --cor-fundo-secundario: #F7B500; /* Amarelo */
-    --cor-texto-descricao: #FFFFFF; /* Branco */
-    --cor-texto-preco: #FFFFFF; /* Branco */
+// ##################################################################
+//  Lendo a API e o Lote (Batch) da URL
+// ##################################################################
+const queryParams = new URLSearchParams(window.location.search);
+const API_URL_BASE = queryParams.get('api'); // URL da API (só com client_id)
+const loteManual = queryParams.get('videos'); // O grupo de vídeo (ex: 1, 2, 3...)
+// ##################################################################
+
+
+// --- Chave para o Cache ---
+// O cache agora depende do lote, para não misturar os vídeos
+const CACHE_KEY = `supermercado_api_cache_${API_URL_BASE}_lote_${loteManual || 'auto'}`;
+// --- Configuração dos Dados (AGORA VAZIOS, VIRÃO DA API OU CACHE) ---
+let configMercado = {};
+let produtos = [];
+// --- Fim da Configuração ---
+
+
+// Elementos do DOM
+const logoContainer = document.getElementById('logo-container');
+const produtoContainer = document.getElementById('produto-container');
+const descricaoContainer = document.getElementById('descricao-container');
+const precoContainer = document.getElementById('preco-container');
+const seloContainer = document.getElementById('selo-container');
+const infoInferiorWrapper = document.getElementById('info-inferior-wrapper');
+
+
+const logoImg = document.getElementById('logo-img');
+const produtoImg = document.getElementById('produto-img');
+const descricaoTexto = document.getElementById('descricao-texto');
+const precoTexto = document.getElementById('preco-texto');
+const seloImg = document.getElementById('selo-img');
+const qrcodeImg = document.getElementById('qrcode-img');
+const qrTexto = document.getElementById('qr-texto');
+// Itens Estáticos (Só animam 1 vez)
+const elementosEstaticosAnimados = [logoContainer];
+// SÓ O LOGO
+// Itens Rotativos (Animam a cada 5s)
+const elementosAnimadosProduto = [
+    produtoContainer, 
+    descricaoContainer, 
+    precoContainer, 
+    seloContainer, 
+    infoInferiorWrapper // A "CAIXINHA" inteira
+];
+// --- Constantes de Tempo ---
+// const PRODUTOS_POR_LOTE = 3; // Não é mais necessário, a API define isso
+const DURACAO_TOTAL_SLOT = 15000;
+// 15 segundos
+// ATENÇÃO: Esta lógica agora assume que a API *sempre* retorna 3 produtos
+const DURACAO_POR_PRODUTO = DURACAO_TOTAL_SLOT / 3; // 5000ms (5s) por produto
+
+const ANIMATION_DELAY = 1000;
+// 1 segundo
+const EXIT_ANIMATION_DURATION = 500; // 0.5s
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// 1. Função para APLICAR A CONFIGURAÇÃO DO MERCADO (Itens Estáticos)
+function applyConfig(config) {
+    // ############ MUDANÇA BUBBLE.IO (Mapeamento Final - MINÚSCULAS) ############
+    // Mapeando os nomes do seu DB (ex: "cor_fundo_text") para os nomes que o CSS espera.
+    document.documentElement.style.setProperty('--cor-fundo-principal', config.cor_fundo_text);
+    document.documentElement.style.setProperty('--cor-fundo-secundario', config.cor_2_text);
+    document.documentElement.style.setProperty('--cor-texto-descricao', config.cor_texto_1_text);
+    document.documentElement.style.setProperty('--cor-texto-preco', config.cor_texto_2_text);
     
-    /* Cor da seta do QR Code */
-    --cor-seta-qr: #00A300; /* Verde padrão */
-}
-
-/* --- Configuração de Tela Cheia (Sem Bordas) --- */
-html {
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
-}
-body {
-    height: 100%;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #000; 
-}
-#app {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-}
-
-/* --- Fundos --- */
-#fundo-principal {
-    background-color: var(--cor-fundo-principal);
-    background-image: linear-gradient(135deg, var(--cor-fundo-principal) 0%, color-mix(in srgb, var(--cor-fundo-principal) 90%, black 10%) 100%);
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1; 
-}
-#fundo-secundario {
-    background-color: var(--cor-fundo-secundario);
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 20vh; 
-    clip-path: ellipse(150% 100% at 50% 100%);
-    box-shadow: 0 -1vh 2vh rgba(0,0,0,0.2); 
-    z-index: 2;
-}
-
-/* --- ESTILOS DE CONTEÚDO (Novo Layout) --- */
-
-.elemento-animado {
-    position: absolute;
-    opacity: 0; 
-    box-sizing: border-box;
-    z-index: 10; /* Z-index base para elementos */
-}
-
-/* Logo (Canto Superior Direito) */
-#logo-container {
-    top: 3%;
-    right: 5%;
-    width: 30%;
-    height: 15%;
-    display: flex;
-    justify-content: flex-end;
-    align-items: flex-start; 
-    z-index: 12; /* <-- CORRIGIDO: Na frente de tudo */
-}
-#logo-img {
-    max-width: 100%; 
-    max-height: 100%;
-    object-fit: contain;
-}
-
-/* Selo (Esquerda) */
-#selo-container {
-    top: 15%;
-    left: 1%;
-    width: 70%; 
-    height: 40%;
-    z-index: 12;
-    /* Na frente do produto */
-}
-#selo-img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
-/* Produto (Direita) */
-#produto-container {
-    top: 20%;
-    right: 0%;
-    width: 60%; 
-    height: 70%; 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 11; /* Atrás do selo e texto */
-}
-#produto-img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 0.5vh 1.5vh rgba(0,0,0,0.3));
-}
-
-/* Descrição (Esquerda) */
-#descricao-container {
-    top: 50%;
-    left: 5%;
-    width: 40%;
-    height: 15%;
-    display: flex;
-    align-items: center;
-    z-index: 12; 
-    /* Na frente do produto */
-}
-#descricao-texto {
-    font-size: 3.4vh;
-    color: var(--cor-texto-descricao);
-    font-weight: bold;
-    text-align: left;
-    margin: 0;
-    line-height: 1.2;
-    text-shadow: 0 0.2vh 0.4vh rgba(0,0,0,0.3);
-}
-
-/* Preço (Esquerda) */
-#preco-container {
-    top: 65%;
-    left: 5%;
-    width: 40%; 
-    height: 15%;
-    display: flex;
-    align-items: baseline; 
-    color: var(--cor-texto-preco);
-    font-weight: bolder;
-    text-shadow: 0 0.2vh 0.4vh rgba(0,0,0,0.3);
-    z-index: 12;
-    /* Na frente do produto */
-}
-.simbolo-real {
-    font-size: 3.4vh;
-    margin-right: 8px;
-}
-#preco-texto {
-    font-size: 10vh;
-    line-height: 1;
-}
-
-
-/* --- "Caixinha" do QR/Seta --- */
-
-/* 1. A "Caixinha" (Wrapper) */
-#info-inferior-wrapper {
-    bottom: 3vh;
-    left: 3vw;
-    width: auto; /* --- MUDANÇA: Não força mais a largura (era 94vw) --- */
-    max-width: 94vw;
-    /* Limite para não vazar da tela */
-    height: auto;
-    z-index: 12;
-    /* Na FRENTE do produto */
-    display: flex;
-    align-items: center;
-}
-
-/* 2. O QR Code (dentro da caixinha) */
-#qrcode-container {
-    width: 30vw; 
-    height: 30vw; 
-    background-color: white;
-    padding: 1.5vw; 
-    box-sizing: border-box;
-    flex-shrink: 0; 
-}
-#qrcode-img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-/* 3. A Caixa da Seta (dentro da caixinha) */
-#qr-texto-container {
-    background-color: var(--cor-seta-qr);
-    padding: 1.5vh 2vh;
-    border-radius: 1vh;
-    position: relative;
-    margin-left: 3vw; 
-    width: auto; /* --- MUDANÇA: Largura automática --- */
-    flex-shrink: 0;
-    /* --- MUDANÇA: Não encolhe */
-    /* 'flex-grow: 1' REMOVIDO */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-/* A Seta (feita com CSS) */
-#qr-texto-container::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    left: -2.8vw; 
-    width: 0; 
-    height: 0; 
-    border-top: 1.5vw solid transparent;
-    border-bottom: 1.5vw solid transparent;
-    border-right: 3vw solid var(--cor-seta-qr);
-}
-#qr-texto {
-    margin: 0;
-    color: white;
-    font-size: 3.5vw; 
-    font-weight: bold;
-    text-align: center;
-    white-space: nowrap;
-    /* --- MUDANÇA: Não quebra a linha --- */
-}
-/* --- FIM DAS MUDANÇAS --- */
-
-
-/* --- ANIMAÇÕES (Mesmas de antes) --- */
-.hidden { opacity: 0;
-}
-.slideInUp { animation: slideInUp 0.8s ease-out forwards; }
-@keyframes slideInUp {
-    from { opacity: 0; transform: translateY(100%);
+    // CORREÇÃO: Usando os nomes em MINÚSCULAS que a API envia.
+    const prefixoURL = 'https:';
+    if (config.logo_mercado_url_text) { // <-- CORRIGIDO (minúsculas)
+        logoImg.src = prefixoURL + config.logo_mercado_url_text; // <-- CORRIGIDO (minúsculas)
     }
-    to { opacity: 1; transform: translateY(0); }
+    
+    document.documentElement.style.setProperty('--cor-seta-qr', config.qr_cor_seta_text || '#00A300'); // <-- CORRIGIDO (minúsculas)
+    // ############ FIM DA MUDANÇA ############
+
+    // Anima a entrada do logo (o único item estático)
+    elementosEstaticosAnimados.forEach(el => el.classList.add('slideInUp'));
 }
-.slideInRight { animation: slideInRight 0.8s ease-out forwards;
+
+// 2. Função para ATUALIZAR o conteúdo do PRODUTO (itens que rotacionam)
+function updateContent(item) {
+    // ############ MUDANÇA BUBBLE.IO (Mapeamento Final) ############
+    // Mapeando os nomes dos campos do seu 'produto'
+    // O JSON do Bubble adiciona "http:" ou "https:" automaticamente se começar com //
+    const prefixoURL = 'https:';
+    
+    produtoImg.src = prefixoURL + item.imagem_produto_text;
+    descricaoTexto.textContent = item.nome_text;
+    precoTexto.textContent = item.valor_text;
+    seloImg.src = prefixoURL + item.selo_produto_text;
+    qrcodeImg.src = prefixoURL + item.t_qr_produto_text;
+    
+    // LÓGICA MOVIDA: O texto do QR agora é por produto.
+    qrTexto.textContent = item.texto_qr_text; 
+    // ############ FIM DA MUDANÇA ############
+
+    // Prepara a animação de máquina de escrever
+    const precoElement = document.getElementById('preco-texto');
+    precoContainer.classList.remove('typewriter');
+    void precoContainer.offsetWidth;
+    precoContainer.style.animation = 'none'; 
+    
+    // ############ MUDANÇA BUBBLE.IO ############
+    // Lendo o 'valor_text' para animar
+    const steps = (item.valor_text && item.valor_text.length > 0) ? item.valor_text.length : 1;
+    // ############ FIM DA MUDANÇA ############
+    
+    const duration = (steps * 0.15 < 1) ? steps * 0.15 : 1;
+    // Máx de 1s
+    
+    precoContainer.style.animation = `typewriter ${duration}s steps(${steps}) forwards`;
 }
-@keyframes slideInRight {
-    from { opacity: 0; transform: translateX(100%); }
-    to { opacity: 1;
-    transform: translateX(0); }
+
+// 3. Sincronia da Animação de ENTRADA
+async function playEntranceAnimation() {
+    elementosAnimadosProduto.forEach(el => el.classList.remove('fadeOut'));
+    
+    produtoContainer.classList.add('slideInRight');
+    seloContainer.classList.add('slideInLeft');
+    descricaoContainer.classList.add('slideInLeft');
+    infoInferiorWrapper.classList.add('slideInUp');
+    // A "Caixinha" inteira
+    precoContainer.classList.add('typewriter'); // Preço entra JUNTO
+    
+    await sleep(ANIMATION_DELAY);
 }
-.slideInLeft { animation: slideInLeft 0.8s ease-out forwards; }
-@keyframes slideInLeft {
-    from { opacity: 0;
-    transform: translateX(-100%); }
-    to { opacity: 1; transform: translateX(0); }
+
+// 4. Função para EXECUTAR a animação de SAÍDA do PRODUTO
+async function playExitAnimation() {
+    elementosAnimadosProduto.forEach(el => {
+        el.className = 'elemento-animado';
+        el.classList.add('fadeOut');
+    });
+    await sleep(EXIT_ANIMATION_DURATION);
+    elementosAnimadosProduto.forEach(el => el.classList.add('hidden'));
 }
-.typewriter {
-    opacity: 1;
-    animation: typewriter 1s steps(4) forwards;
-    white-space: nowrap;
-    overflow: hidden;
-    width: 0;
+
+// 5. Roda a "Micro-Rotação" (os 3 produtos)
+function runInternalRotation(items) {
+    async function showNextProduct(subIndex) {
+        // A lógica de fatiamento foi removida.
+        // A API agora entrega *exatamente* os 3 itens (ou menos) que queremos.
+        const item = items[subIndex % items.length];
+        if (subIndex > 0) {
+            await playExitAnimation();
+        }
+        updateContent(item);
+        await playEntranceAnimation();
+    }
+    showNextProduct(0);
+    setTimeout(() => showNextProduct(1), DURACAO_POR_PRODUTO);
+    setTimeout(() => showNextProduct(2), DURACAO_POR_PRODUTO * 2);
 }
-@keyframes typewriter {
-    from { width: 0; }
-    to { width: 100%;
+
+
+// 6. FUNÇÃO DE INICIALIZAÇÃO (Lógica de Cache)
+async function init() {
+    
+    if (!API_URL_BASE) {
+        console.error("Erro: URL da API não fornecida na URL da página.");
+        document.body.innerHTML = `<h1 style="color: red; font-family: Arial;">Erro de Configuração: URL da API não encontrada.</h1><p style="color: white; font-family: Arial;">Adicione <strong>?api=[SUA_URL_DA_API]</strong> ao final da URL no DSPLAY.</p>`;
+        return;
+    }
+
+    // ############ MUDANÇA BUBBLE.IO (Lógica Inteligente) ############
+    // O parâmetro 'videos' é OBRIGATÓRIO para esta lógica funcionar
+    if (!loteManual) {
+        console.error("Erro: Parâmetro 'videos' (ex: &videos=1) não encontrado na URL.");
+        document.body.innerHTML = `<h1 style="color: red; font-family: Arial;">Erro de Configuração: Lote de vídeo não encontrado.</h1><p style="color: white; font-family: Arial;">Adicione <strong>&videos=[NUMERO_DO_GRUPO]</strong> ao final da URL.</p>`;
+        return;
+    }
+    // ############ FIM DA MUDANÇA ############
+    
+    let cachedData = null;
+    try {
+        const cachedString = localStorage.getItem(CACHE_KEY);
+        if (cachedString) {
+            cachedData = JSON.parse(cachedString);
+            console.log("Template carregado do cache.");
+        }
+    } catch (e) {
+        console.error("Erro ao ler cache", e);
+        cachedData = null;
+    }
+
+    if (cachedData) {
+        runTemplate(cachedData);
+        fetchFromNetwork();
+        // Atualiza em segundo plano
+    } else {
+        console.log("Cache vazio. Buscando da rede...");
+        try {
+            const newData = await fetchFromNetwork();
+            if(newData) {
+                runTemplate(newData);
+            } else {
+                throw new Error("Falha ao buscar dados da rede");
+            }
+        } catch (error) {
+            console.error("Erro no init() sem cache:", error);
+            document.body.innerHTML = `<h1 style="color: red; font-family: Arial;">Erro ao Carregar API</h1><p style="color: white; font-family: Arial;">Verifique a URL da API e a conexão de rede.<br>API: ${API_URL_BASE}</p>`;
+        }
     }
 }
-.fadeOut { animation: fadeOut 0.5s ease-in forwards; }
-@keyframes fadeOut {
-    from { opacity: 1;
+
+// 7. Busca dados da rede e salva no cache
+async function fetchFromNetwork() {
+    try {
+        // ############ MUDANÇA BUBBLE.IO (Lógica Inteligente) ############
+        // Anexa o parâmetro &videos=X (lido de loteManual) à URL da API
+        const finalApiUrl = `${API_URL_BASE}&videos=${loteManual}`;
+        console.log("Buscando dados da API: ", finalApiUrl);
+        // ############ FIM DA MUDANÇA ############
+
+        const response = await fetch(finalApiUrl); // Chama a URL final
+        if (!response.ok) throw new Error('Resposta da rede não foi OK');
+        const data = await response.json();
+        
+        localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+        console.log("Cache atualizado com novos dados da rede.");
+
+        if (data.response && data.response.produtos) {
+            preloadImages(data.response.produtos, data.response.configMercado);
+        }
+        
+        return data;
+    } catch (error) {
+        console.error("Falha ao buscar dados da rede:", error);
+        return null;
     }
-    to { opacity: 0; }
 }
 
-/* --- Media Query Horizontal (IGNORAR POR ENQUANTO) --- */
-@media (orientation: landscape) {
-    /* Layout horizontal ainda precisa ser feito */
+// 8. --- MUDANÇA CRÍTICA: Lógica de Lote (Híbrida) ---
+function runTemplate(data) {
+    try {
+        // ############ MUDANÇA BUBBLE.IO (lendo de data.response) ############
+        configMercado = data.response.configMercado;
+        produtos = data.response.produtos;
+        // ############ FIM DA MUDANÇA ############
+        
+        if (!configMercado || !produtos || produtos.length === 0) {
+             if (!configMercado) console.error("configMercado está nulo ou indefinido.");
+             if (!produtos) console.error("produtos está nulo ou indefinido.");
+             if (produtos && produtos.length === 0) console.error("Nenhum produto nos dados.");
+             throw new Error("Dados de config ou produtos estão faltando.");
+        }
+
+        // Aplica todos os itens estáticos (Logo, Texto do QR, Cores)
+        applyConfig(configMercado);
+        if (produtos && produtos.length > 0) {
+            
+            // ############ MUDANÇA BUBBLE.IO (Lógica Inteligente) ############
+            // A lógica de "fatiamento" (slice) foi REMOVIDA.
+            // A API já entrega os 3 produtos corretos (ou menos).
+            const itemsToShow = produtos.filter(Boolean);
+            // ############ FIM DA MUDANÇA ############
+
+            // Inicia a rotação dos itens dinâmicos
+            runInternalRotation(itemsToShow);
+        } else {
+            // Mostra um aviso se a planilha estiver vazia
+            descricaoTexto.textContent = "Nenhum produto cadastrado.";
+            descricaoContainer.classList.add('slideInLeft');
+        }
+
+    } catch (error) {
+        console.error("Erro ao executar o template:", error);
+        document.body.innerHTML = `<h1 style="color: red; font-family: Arial;">Erro ao ler dados da planilha.</h1><p style="color: white; font-family: Arial;">Verifique se a planilha está formatada corretamente.</p>`;
+    }
 }
+// --- FIM DA MUDANÇA ---
+
+
+// 9. Pré-carregamento de Imagens
+function preloadImages(produtosArray, config) {
+    console.log("Iniciando pré-carregamento de imagens...");
+    const prefixoURL = 'https:'; // Adicionado prefixo aqui
+    
+    // Pré-carrega imagens dos produtos (Produto, Selo, QR)
+    if (produtosArray) {
+        // ############ MUDANÇA BUBBLE.IO (Mapeamento Final - MINÚSCULAS) ############
+        produtosArray.forEach(produto => {
+            if (produto.imagem_produto_text) (new Image()).src = prefixoURL + produto.imagem_produto_text;
+            if (produto.selo_produto_text) (new Image()).src = prefixoURL + produto.selo_produto_text;
+            if (produto.t_qr_produto_text) (new Image()).src = prefixoURL + produto.t_qr_produto_text;
+        });
+    }
+    
+    // Pré-carrega imagem da config (Logo)
+    if (config && config.logo_mercado_url_text) { // <-- CORRIGIDO (minúsculas)
+        (new Image()).src = prefixoURL + config.logo_mercado_url_text; // <-- CORRIGIDO (minúsculas)
+    }
+    // ############ FIM DA MUDANÇA ############
+}
+
+// Inicia tudo
+document.addEventListener('DOMContentLoaded', init);
