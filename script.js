@@ -1,4 +1,4 @@
-// script.js - Versão com "Crossfade" (resolve "travada")
+// script.js - Versão HÍBRIDA (Automático + Manual via URL)
 
 // ##################################################################
 //  Lendo a API e o Lote (Batch) da URL
@@ -85,21 +85,11 @@ function updateContent(item) {
     qrcodeImg.src = prefixoURL + item.t_qr_produto_text;
     
     qrTexto.textContent = item.texto_qr_text; 
-
-    // Prepara a animação de máquina de escrever
-    const precoElement = document.getElementById('preco-texto');
-    precoContainer.classList.remove('typewriter');
-    void precoContainer.offsetWidth;
-    precoContainer.style.animation = 'none'; 
     
-    const steps = (item.valor_text && item.valor_text.length > 0) ? item.valor_text.length : 1;
-    const duration = (steps * 0.15 < 1) ? steps * 0.15 : 1;
-    
-    precoContainer.style.animation = `typewriter ${duration}s steps(${steps}) forwards`;
+    // --- MUDANÇA: Lógica 'typewriter' REMOVIDA ---
 }
 
-// 3. --- MUDANÇA: Animação de ENTRADA Suave (Crossfade) ---
-// (Esta função agora será chamada SIMULTANEAMENTE com a de saída)
+// 3. Sincronia da Animação de ENTRADA
 async function playEntranceAnimation() {
     // 1. Reseta todas as classes
     elementosAnimadosProduto.forEach(el => {
@@ -110,35 +100,28 @@ async function playEntranceAnimation() {
     produtoContainer.classList.add('slideInRight');
     seloContainer.classList.add('slideInLeft');
     descricaoContainer.classList.add('slideInLeft');
+    precoContainer.classList.add('slideInLeft'); // --- MUDANÇA: Preço entra deslizando
     infoInferiorWrapper.classList.add('slideInUp');
-    precoContainer.classList.add('typewriter'); 
     
     // 3. Espera a animação de entrada terminar
     await sleep(ANIMATION_DELAY); 
 }
 
-// 4. --- MUDANÇA: Animação de SAÍDA Suave (Crossfade) ---
-// (Esta função será chamada SIMULTANEAMENTE com a de entrada)
+// 4. --- MUDANÇA CRÍTICA: Animação de SAÍDA (resolve "preço travado") ---
 async function playExitAnimation() {
-    // 1. ACHA todos os elementos que JÁ ESTÃO na tela (com classes de entrada)
-    //    Isso é complexo, então vamos simplificar e APENAS adicionar as classes de saída.
-    //    O reset será feito pela 'playEntranceAnimation'.
-    
+    // 1. ACHA todos os elementos que JÁ ESTÃO na tela e adiciona classes de SAÍDA
     produtoContainer.classList.add('slideOutRight'); // Sai para a direita
     seloContainer.classList.add('slideOutLeft'); // Sai para a esquerda
     descricaoContainer.classList.add('slideOutLeft'); // Sai para a esquerda
-    precoContainer.classList.add('slideOutDown'); // Sai para baixo
+    precoContainer.classList.add('slideOutLeft'); // --- MUDANÇA: Preço sai deslizando
     infoInferiorWrapper.classList.add('slideOutDown'); // Sai para baixo
 
     // 2. Não espera. Deixa a animação de saída tocar (0.5s)
-    //    enquanto a de entrada (1.0s) já começou.
-    
-    // await sleep(EXIT_ANIMATION_DURATION); // 'await' REMOVIDO
 }
 // --- FIM DA MUDANÇA ---
 
 
-// 5. --- MUDANÇA: Roda a "Micro-Rotação" (com Crossfade) ---
+// 5. --- MUDANÇA CRÍTICA: Roda a "Micro-Rotação" (com Crossfade) ---
 function runInternalRotation(items) {
     
     let currentIndex = 0;
@@ -146,30 +129,30 @@ function runInternalRotation(items) {
     function showNextProduct() {
         const item = items[currentIndex % items.length];
         
-        // 1. Atualiza o conteúdo (enquanto está invisível/fora da tela)
-        updateContent(item);
-        
-        // 2. Toca a animação de ENTRADA
-        playEntranceAnimation();
-        
-        // 3. Toca a animação de SAÍDA (dos elementos antigos)
+        // 1. Toca a animação de SAÍDA (dos elements antigos)
         //    (Isso só não acontece na primeira vez)
         if (currentIndex > 0) {
-            playExitAnimation(); // Toca a saída AO MESMO TEMPO
+            playExitAnimation(); 
         }
+        
+        // 2. Atualiza o conteúdo (enquanto está invisível)
+        updateContent(item);
+        
+        // 3. Toca a animação de ENTRADA (dos novos elementos)
+        playEntranceAnimation();
 
         // 4. Prepara o próximo item
         currentIndex++;
     }
 
-    // 1. Mostra o primeiro item (só animação de ENTRADA)
-    showNextProduct(0);
+    // 1. Mostra o primeiro item (só ENTRADA)
+    showNextProduct();
     
-    // 2. Agenda o segundo item (ENFIM, o "Crossfade")
-    setTimeout(() => showNextProduct(1), DURACAO_POR_PRODUTO);
+    // 2. Agenda o segundo item (SAÍDA + ENTRADA)
+    setTimeout(showNextProduct, DURACAO_POR_PRODUTO);
     
-    // 3. Agenda o terceiro item
-    setTimeout(() => showNextProduct(2), DURACAO_POR_PRODUTO * 2);
+    // 3. Agenda o terceiro item (SAÍDA + ENTRADA)
+    setTimeout(showNextProduct, DURACAO_POR_PRODUTO * 2);
 }
 // --- FIM DA MUDANÇA ---
 
@@ -275,7 +258,6 @@ function runTemplate(data) {
         document.body.innerHTML = `<h1 style="color: red; font-family: Arial;">Erro ao ler dados da planilha.</h1><p style="color: white; font-family: Arial;">Verifique se a planilha está formatada corretamente.</p>`;
     }
 }
-// --- FIM DA MUDANÇA ---
 
 
 // 9. Pré-carregamento de Imagens
