@@ -1,4 +1,7 @@
-/* style.css - Layout Final */
+/* style.css - Layout Final (com Fonte Oswald e Pesos) */
+
+/* --- MUDANÇA: Importa os pesos 300, 400, 600 e 700 --- */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;600;700&display=swap');
 
 :root {
     /* Variáveis CSS para as cores dinâmicas (serão preenchidas pelo JS) */
@@ -23,7 +26,10 @@ body {
     margin: 0;
     padding: 0;
     overflow: hidden; 
-    /* A cor de fundo preta agora está no script <head> do index.html */
+    
+    /* --- MUDANÇA: Define Oswald como a fonte principal com peso Regular (400) --- */
+    font-family: 'Oswald', sans-serif;
+    font-weight: 400; /* Padrão Regular */
 }
 #app {
     position: fixed;
@@ -126,7 +132,7 @@ body {
 #descricao-texto {
     font-size: 3.4vh;
     color: var(--cor-texto-descricao);
-    font-weight: bold;
+    font-weight: 400; /* --- MUDANÇA: Regular 400 (como pedido) --- */
     text-align: left;
     margin: 0;
     line-height: 1.2;
@@ -142,17 +148,19 @@ body {
     display: flex;
     align-items: baseline; 
     color: var(--cor-texto-preco);
-    font-weight: bolder;
+    font-weight: 600; /* --- MUDANÇA: SemiBold 600 (como pedido) --- */
     text-shadow: 0 0.2vh 0.4vh rgba(0,0,0,0.3);
     z-index: 12; /* Na frente do produto */
 }
 .simbolo-real {
     font-size: 3.4vh;
     margin-right: 8px;
+    /* O font-weight: 600 é herdado do #preco-container */
 }
 #preco-texto {
     font-size: 10vh;
     line-height: 1;
+    /* O font-weight: 600 é herdado do #preco-container */
 }
 
 
@@ -213,12 +221,13 @@ body {
     margin: 0;
     color: white;
     font-size: 3.5vw; 
-    font-weight: bold;
+    font-weight: 300; /* --- MUDANÇA: Light 300 (como pedido) --- */
     text-align: center;
     white-space: nowrap; 
 }
 
-/* --- ANIMAÇÕES DE ENTRADA --- */
+
+/* --- ANIMAÇÕES (Mesmas de antes) --- */
 .hidden { opacity: 0; }
 .slideInUp { animation: slideInUp 0.8s ease-out forwards; }
 @keyframes slideInUp {
@@ -247,9 +256,7 @@ body {
     to { width: 100%; }
 }
 
-
-/* --- ANIMAÇÕES DE SAÍDA (para resolver a "travada") --- */
-
+/* --- ANIMAÇÕES DE SAÍDA --- */
 .slideOutLeft { animation: slideOutLeft 0.5s ease-in forwards; }
 @keyframes slideOutLeft {
     from { opacity: 1; transform: translateX(0); }
