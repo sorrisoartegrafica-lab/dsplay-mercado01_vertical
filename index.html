@@ -5,7 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Promoção Supermercado - Layout Final</title>
     <link rel="stylesheet" href="style.css">
-</head>
+
+    <script>
+        try {
+            // Pega a cor salva da última visita
+            const cachedBgColor = localStorage.getItem('main_bg_color_cache');
+            if (cachedBgColor) {
+                // Aplica a cor ANTES da página carregar
+                document.documentElement.style.backgroundColor = cachedBgColor;
+            } else {
+                // Cor padrão (preto) se for a primeira visita
+                document.documentElement.style.backgroundColor = '#000';
+            }
+        } catch (e) {
+            // Se falhar (ex: modo privado), usa preto
+            document.documentElement.style.backgroundColor = '#000';
+        }
+    </script>
+    </head>
 <body>
     
     <div id="app">
