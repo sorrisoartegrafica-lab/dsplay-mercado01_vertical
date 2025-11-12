@@ -1,4 +1,4 @@
-// script.js - Versão HÍBRIDA (Automático + Manual via URL)
+// script.js - Versão com Animação CORRIGIDA (Sai -> Entra)
 
 // ##################################################################
 //  Lendo a API e o Lote (Batch) da URL
@@ -50,7 +50,7 @@ const elementosAnimadosProduto = [
 // --- Constantes de Tempo ---
 const DURACAO_TOTAL_SLOT = 15000;
 const DURACAO_POR_PRODUTO = DURACAO_TOTAL_SLOT / 3; // 5000ms (5s) por produto
-const ANIMATION_DELAY = 1000; // 1 segundo (tempo da animação de entrada)
+const ANIMATION_DELAY = 800; // 0.8s (tempo da animação de entrada)
 const EXIT_ANIMATION_DURATION = 500; // 0.5s (tempo da animação de saída)
 
 function sleep(ms) {
@@ -85,74 +85,67 @@ function updateContent(item) {
     qrcodeImg.src = prefixoURL + item.t_qr_produto_text;
     
     qrTexto.textContent = item.texto_qr_text; 
-    
-    // --- MUDANÇA: Lógica 'typewriter' REMOVIDA ---
 }
 
-// 3. Sincronia da Animação de ENTRADA
+// 3. --- MUDANÇA: LÓGICA DE ANIMAÇÃO DE ENTRADA CORRIGIDA ---
 async function playEntranceAnimation() {
-    // 1. Reseta todas as classes
+    // 1. Reseta classes de SAÍDA (as únicas que poderiam estar lá)
     elementosAnimadosProduto.forEach(el => {
-        el.className = 'elemento-animado';
+        el.className = 'elemento-animado'; // Reseta tudo
     });
     
     // 2. Adiciona classes de ENTRADA
     produtoContainer.classList.add('slideInRight');
     seloContainer.classList.add('slideInLeft');
     descricaoContainer.classList.add('slideInLeft');
-    precoContainer.classList.add('slideInLeft'); // --- MUDANÇA: Preço entra deslizando
+    precoContainer.classList.add('slideInLeft');
     infoInferiorWrapper.classList.add('slideInUp');
     
     // 3. Espera a animação de entrada terminar
     await sleep(ANIMATION_DELAY); 
 }
 
-// 4. --- MUDANÇA CRÍTICA: Animação de SAÍDA (resolve "preço travado") ---
+// 4. --- MUDANÇA: LÓGICA DE ANIMAÇÃO DE SAÍDA CORRIGIDA ---
 async function playExitAnimation() {
-    // 1. ACHA todos os elementos que JÁ ESTÃO na tela e adiciona classes de SAÍDA
+    // 1. Reseta classes de ENTRADA (as únicas que poderiam estar lá)
+    elementosAnimadosProduto.forEach(el => {
+        el.className = 'elemento-animado'; // Reseta tudo
+    });
+
+    // 2. Adiciona classes de SAÍDA
     produtoContainer.classList.add('slideOutRight'); // Sai para a direita
     seloContainer.classList.add('slideOutLeft'); // Sai para a esquerda
     descricaoContainer.classList.add('slideOutLeft'); // Sai para a esquerda
-    precoContainer.classList.add('slideOutLeft'); // --- MUDANÇA: Preço sai deslizando
+    precoContainer.classList.add('slideOutLeft'); // Preço sai deslizando
     infoInferiorWrapper.classList.add('slideOutDown'); // Sai para baixo
 
-    // 2. Não espera. Deixa a animação de saída tocar (0.5s)
+    // 3. ESPERA a animação de saída terminar
+    await sleep(EXIT_ANIMATION_DURATION);
 }
 // --- FIM DA MUDANÇA ---
 
 
-// 5. --- MUDANÇA CRÍTICA: Roda a "Micro-Rotação" (com Crossfade) ---
-function runInternalRotation(items) {
+// 5. --- MUDANÇA CRÍTICA: Roda a "Micro-Rotação" (com lógica 'await' correta) ---
+async function runInternalRotation(items) {
     
-    let currentIndex = 0;
-
-    function showNextProduct() {
-        const item = items[currentIndex % items.length];
-        
-        // 1. Toca a animação de SAÍDA (dos elements antigos)
-        //    (Isso só não acontece na primeira vez)
-        if (currentIndex > 0) {
-            playExitAnimation(); 
-        }
-        
-        // 2. Atualiza o conteúdo (enquanto está invisível)
-        updateContent(item);
-        
-        // 3. Toca a animação de ENTRADA (dos novos elementos)
-        playEntranceAnimation();
-
-        // 4. Prepara o próximo item
-        currentIndex++;
-    }
-
     // 1. Mostra o primeiro item (só ENTRADA)
-    showNextProduct();
-    
-    // 2. Agenda o segundo item (SAÍDA + ENTRADA)
-    setTimeout(showNextProduct, DURACAO_POR_PRODUTO);
-    
-    // 3. Agenda o terceiro item (SAÍDA + ENTRADA)
-    setTimeout(showNextProduct, DURACAO_POR_PRODUTO * 2);
+    updateContent(items[0]);
+    await playEntranceAnimation(); // Espera 0.8s
+    // Espera o resto do tempo (5s - 0.8s = 4.2s)
+    await sleep(DURACAO_POR_PRODUTO - ANIMATION_DELAY); 
+
+    // 2. Mostra o segundo item
+    await playExitAnimation(); // Espera 0.5s
+    updateContent(items[1 % items.length]); // Modulo para caso só tenha 1 ou 2 itens
+    await playEntranceAnimation(); // Espera 0.8s
+    // Espera o resto do tempo (5s - 0.5s - 0.8s = 3.7s)
+    await sleep(DURACAO_POR_PRODUTO - EXIT_ANIMATION_DURATION - ANIMATION_DELAY);
+
+    // 3. Mostra o terceiro item
+    await playExitAnimation(); // Espera 0.5s
+    updateContent(items[2 % items.length]);
+    await playEntranceAnimation(); // Espera 0.8s
+    // Não precisa de mais 'sleep', o player DSPLAY vai cortar aqui.
 }
 // --- FIM DA MUDANÇA ---
 
