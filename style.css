@@ -1,12 +1,9 @@
-/* style.css - Versão Vertical Final (Com todas as animações corrigidas) */
-
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;600;700&display=swap');
 
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 :root {
+    /* Cores Padrão (serão substituídas pelo JS) */
     --cor-fundo-principal: #D90404;
     --cor-fundo-secundario: #F7B500;
     --cor-texto-descricao: #FFFFFF;
@@ -21,284 +18,136 @@ html, body {
     padding: 0;
     overflow: hidden;
     font-family: 'Oswald', sans-serif;
-    background-color: #000;
+    background-color: var(--cor-fundo-principal); /* Usa variável para evitar flash */
 }
 
-#app {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
+#app { position: relative; width: 100%; height: 100%; }
 
 /* --- FUNDOS --- */
 #fundo-principal {
     background-color: var(--cor-fundo-principal);
     background-image: linear-gradient(180deg, var(--cor-fundo-principal) 0%, #1a0000 120%);
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
+    position: absolute; width: 100%; height: 100%; z-index: 1;
 }
 
 #fundo-secundario {
     background-color: var(--cor-fundo-secundario);
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 24%; 
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 24%;
     clip-path: ellipse(160% 100% at 50% 100%);
-    z-index: 2;
-    opacity: 0.95;
-    box-shadow: 0 -10px 20px rgba(0,0,0,0.3);
+    z-index: 2; opacity: 0.95; box-shadow: 0 -10px 20px rgba(0,0,0,0.3);
 }
 
-/* --- ELEMENTOS GERAIS --- */
-.elemento-animado {
-    position: absolute;
-    opacity: 0;
-    z-index: 10;
-}
+/* --- ELEMENTOS --- */
+.elemento-animado { position: absolute; opacity: 0; z-index: 10; }
 
-/* --- 1. LOGO --- */
+/* 1. Logo (Z-INDEX 50 - Sempre no topo) */
 #logo-container {
-    top: 2vh;
-    left: 0;
-    width: 100%;
-    height: 12vh;
-    display: flex;
-    justify-content: center; 
-    align-items: center;
-    z-index: 20;
+    top: 2vh; left: 0; width: 100%; height: 12vh;
+    display: flex; justify-content: center; align-items: center;
+    z-index: 50; 
 }
-#logo-img {
-    max-height: 100%;
-    max-width: 80%;
-    object-fit: contain;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-}
+#logo-img { max-height: 100%; max-width: 80%; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
 
-/* --- 2. PRODUTO (COM GHOST) --- */
+/* 2. Produto */
 #produto-container {
-    top: 16vh; 
-    left: auto;
-    right: 2vw;  
-    width: 70vw; 
-    height: 50vh; 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10;
-    position: absolute;
+    top: 16vh; right: 2vw; width: 70vw; height: 50vh;
+    display: flex; justify-content: center; align-items: center;
+    z-index: 10; 
 }
-
 #produto-img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    max-width: 100%; max-height: 100%; object-fit: contain;
     filter: drop-shadow(15px 20px 30px rgba(0,0,0,0.4));
-    z-index: 2;
-    position: relative;
+    z-index: 2; position: relative;
 }
-
 #produto-img-ghost {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    z-index: 1;
-    opacity: 0.4; 
-    filter: blur(4px); 
-    transform: translateX(-25%) scale(0.85); 
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    object-fit: contain; z-index: 1; opacity: 0.4; filter: blur(4px); transform: translateX(-25%) scale(0.85);
 }
 
-/* --- 3. SELO --- */
+/* 3. Selo */
 #selo-container {
-    top: 22vh;
-    left: 4vw; 
-    width: 42vw; 
-    height: 42vw;
-    z-index: 15;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transform-origin: center center;
+    top: 22vh; left: 4vw; width: 42vw; height: 42vw;
+    z-index: 15; display: flex; justify-content: center; align-items: center;
 }
-#selo-img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.4));
-}
+#selo-img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.4)); }
 
-/* --- 4. DESCRIÇÃO --- */
+/* 4. Descrição */
 #descricao-container {
-    top: 68vh; 
-    left: 0;
-    width: 100%;
-    height: 7vh; 
-    display: flex;
-    justify-content: center;
-    align-items: flex-end; 
+    top: 68vh; left: 0; width: 100%; height: 7vh;
+    display: flex; justify-content: center; align-items: flex-end;
     z-index: 12;
 }
 #descricao-texto {
-    font-size: 3.2vh; 
-    color: var(--cor-texto-descricao);
-    font-weight: 400;
-    text-align: center;
-    margin: 0;
-    line-height: 1.1;
-    text-transform: uppercase;
-    padding: 0 6vw;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+    font-size: 3.2vh; color: var(--cor-texto-descricao); font-weight: 400;
+    text-align: center; margin: 0; line-height: 1.1; text-transform: uppercase;
+    padding: 0 6vw; text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
 }
 
-/* --- 5. PREÇO --- */
+/* 5. Preço */
 #preco-container {
-    top: 76vh; 
-    left: 0;
-    width: 100%;
-    height: 13vh; 
-    display: flex;
-    justify-content: center;
-    align-items: baseline;
-    color: var(--cor-texto-preco);
-    font-weight: 700;
-    z-index: 12;
-    text-shadow: 2px 2px 0px rgba(0,0,0,0.1); 
+    top: 76vh; left: 0; width: 100%; height: 13vh;
+    display: flex; justify-content: center; align-items: baseline;
+    color: var(--cor-texto-preco); font-weight: 700; z-index: 12;
+    text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
 }
-.simbolo-real {
-    font-size: 4.5vh; 
-    margin-right: 1vh;
-}
-#preco-texto {
-    font-size: 11.5vh; 
-    line-height: 1;
-    letter-spacing: -3px;
-}
+.simbolo-real { font-size: 4.5vh; margin-right: 1vh; }
+#preco-texto { font-size: 11.5vh; line-height: 1; letter-spacing: -3px; }
 
-/* --- 6. RODAPÉ --- */
+/* 6. Rodapé (QR + Texto) - Z-INDEX ALTO */
 #info-inferior-wrapper {
-    bottom: 2vh; 
-    left: 0;
-    width: 100%;
-    height: auto;
-    display: flex;
-    align-items: flex-end; 
-    justify-content: flex-end; 
-    padding-right: 6vw;
-    gap: 1.5vh; 
-    z-index: 12;
+    bottom: 2vh; left: 0; width: 100%; height: auto;
+    display: flex; align-items: flex-end; justify-content: flex-end;
+    padding-right: 6vw; gap: 1.5vh; z-index: 40;
 }
 
 #qr-texto-container {
-    background-color: var(--cor-seta-qr);
-    padding: 0.8vh 2.5vh; 
-    border-radius: 50px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
-    display: flex;
-    align-items: center;
-    border: 2px solid rgba(255,255,255,0.3);
-    margin-bottom: 0.8vh; 
-    position: relative; 
+    background-color: var(--cor-seta-qr); padding: 0.8vh 2.5vh;
+    border-radius: 50px; box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    display: flex; align-items: center; border: 2px solid rgba(255,255,255,0.3);
+    margin-bottom: 0.8vh; position: relative;
 }
-
 #qr-texto-container::after {
-    content: "";
-    display: block;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    right: -0.8vh; 
-    width: 0;
-    height: 0;
-    border-top: 0.8vh solid transparent;
-    border-bottom: 0.8vh solid transparent;
-    border-left: 1vh solid var(--cor-seta-qr); 
+    content: ""; display: block; position: absolute;
+    top: 50%; transform: translateY(-50%); right: -0.8vh; width: 0; height: 0;
+    border-top: 0.8vh solid transparent; border-bottom: 0.8vh solid transparent;
+    border-left: 1vh solid var(--cor-seta-qr);
 }
-
 #qr-texto {
-    margin: 0;
-    color: white;
-    font-size: 2.0vh; 
-    font-weight: 700;
-    white-space: nowrap;
-    text-transform: uppercase;
+    margin: 0; color: white; font-size: 2.0vh; font-weight: 700;
+    white-space: nowrap; text-transform: uppercase;
 }
 
+/* QR Code Container - FUNDO BRANCO FORÇADO */
 #qrcode-container {
-    position: relative; 
-    width: 8.5vh; 
-    height: 8.5vh;
-    background-color: white;
-    padding: 0.5vh;
-    border-radius: 0.8vh;
+    position: relative; width: 8.5vh; height: 8.5vh;
+    background-color: #ffffff; /* Fundo branco para garantir visibilidade */
+    padding: 0.5vh; border-radius: 0.8vh;
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    display: flex; justify-content: center; align-items: center;
 }
-#qrcode-img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
+#qrcode-img { width: 100%; height: 100%; object-fit: contain; }
 
-/* --- ANIMAÇÕES (CORRIGIDAS E ADICIONADAS) --- */
-
+/* --- ANIMAÇÕES --- */
 .fadeIn { animation: fadeIn 1.2s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-.slideInDown { animation: slideInDown 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards, float 4s ease-in-out infinite 0.8s; }
-@keyframes slideInDown { 
-    from { opacity: 0; transform: translateY(-80px); } 
-    to { opacity: 1; transform: translateY(0); } 
-}
-@keyframes float {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0); }
-}
+.slideInDown { animation: slideInDown 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+@keyframes slideInDown { from { opacity: 0; transform: translateY(-80px); } to { opacity: 1; transform: translateY(0); } }
 
 .stampIn { animation: stampIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 @keyframes stampIn {
-    0% { opacity: 0; transform: scale(3); }
-    50% { opacity: 1; transform: scale(0.8); }
-    70% { transform: scale(1.1) rotate(-3deg); }
+    0% { opacity: 0; transform: scale(3); } 50% { opacity: 1; transform: scale(0.8); }
     100% { opacity: 1; transform: scale(1) rotate(-5deg); }
 }
 
-/* ADICIONADO: slideInUp (Para o Produto) */
 .slideInUp { animation: slideInUp 0.8s ease-out forwards; }
-@keyframes slideInUp {
-    from { opacity: 0; transform: translateY(100px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+@keyframes slideInUp { from { opacity: 0; transform: translateY(100px); } to { opacity: 1; transform: translateY(0); } }
 
-/* ADICIONADO: slideInLeft (Para a Descrição) */
 .slideInLeft { animation: slideInLeft 0.8s ease-out forwards; }
-@keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-100px); }
-    to { opacity: 1; transform: translateX(0); }
-}
+@keyframes slideInLeft { from { opacity: 0; transform: translateX(-100px); } to { opacity: 1; transform: translateX(0); } }
 
-/* ADICIONADO: popIn (Para o Preço) */
 .popIn { animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-@keyframes popIn {
-    from { opacity: 0; transform: scale(0.5); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-/* Mapeamento de ElasticUp para popIn se necessário, ou vice versa */
-.elasticUp { animation: elasticUp 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; }
-@keyframes elasticUp {
-    from { opacity: 0; transform: translateY(100px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Animações de Saída */
-.slideOutUp { animation: slideOutUp 0.5s ease-in forwards; }
-@keyframes slideOutUp { to { opacity: 0; transform: translateY(-50px); } }
+@keyframes popIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
 
 .slideOutDown { animation: slideOutDown 0.5s ease-in forwards; }
 @keyframes slideOutDown { to { opacity: 0; transform: translateY(50px); } }
