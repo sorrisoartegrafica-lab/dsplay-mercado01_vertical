@@ -1,55 +1,60 @@
-// script.js - Vertical Final (Cores e QR Code Corrigidos)
+// script.js - Vertical (Baseado no Horizontal Funcional)
 
 const DEFAULT_VIDEO_ID = "1764628151406x909721458907021300"; 
+// URL DA API (A mesma que funciona no horizontal)
 const API_URL_BASE = "https://bluemidia.digital/version-test/api/1.1/wf/get_video_data";
 
 // --- URL & API ---
 const queryParams = new URLSearchParams(window.location.search);
-let video_id = queryParams.get('video_id') || DEFAULT_VIDEO_ID;
+let video_id = queryParams.get('video_id');
+if (!video_id) {
+    console.log("Usando ID padrão.");
+    video_id = DEFAULT_VIDEO_ID;
+}
 
 const API_URL_FINAL = `${API_URL_BASE}?video_id=${video_id}`;
 const CACHE_KEY = `hortifruti_vert_${video_id}`;
 
-// Variáveis Globais
 let configCliente = {}, configTemplate = {}, produtos = [];
 
-// --- ELEMENTOS DO DOM ---
+// --- ELEMENTOS DO DOM (IDs DO VERTICAL) ---
 const logoImg = document.getElementById('logo-img');
 const logoContainer = document.getElementById('logo-container');
 const produtoImg = document.getElementById('produto-img');
 const produtoImgGhost = document.getElementById('produto-img-ghost');
 const produtoContainer = document.getElementById('produto-container');
-const descricaoTexto = document.getElementById('descricao-texto');
+
+// DIFERENÇA 1: No vertical o nome é 'descricao-texto'
+const descricaoTexto = document.getElementById('descricao-texto'); 
 const descricaoContainer = document.getElementById('descricao-container');
+
 const precoTexto = document.getElementById('preco-texto');
 const precoContainer = document.getElementById('preco-container');
 const seloImg = document.getElementById('selo-img');
 const seloContainer = document.getElementById('selo-container');
-
-// Rodapé
-const footerContainer = document.getElementById('info-inferior-wrapper'); 
-const qrcodeContainer = document.getElementById('qrcode-container');
 const qrcodeImg = document.getElementById('qrcode-img');
 const qrTexto = document.getElementById('qr-texto');
+
+// DIFERENÇA 2: No vertical o rodapé é 'info-inferior-wrapper'
+const footerContainer = document.getElementById('info-inferior-wrapper');
+const qrcodeContainer = document.getElementById('qrcode-container');
 
 // Lista de elementos animados
 const elementosRotativos = [
     produtoContainer, seloContainer, descricaoContainer, precoContainer, footerContainer, qrcodeContainer
-];
+].filter(el => el !== null); // Proteção extra
 
 const TEMPO_SLOT_TOTAL = 15000;
 const TEMPO_TRANSICAO = 800;
 
-// --- FUNÇÕES AUXILIARES ---
+// --- FUNÇÕES AUXILIARES (Iguais ao Horizontal) ---
 function formatURL(url) {
     if (!url) return '';
     url = url.trim();
     if (url.startsWith('http') || url.startsWith('//')) return url.startsWith('//') ? 'https:' + url : url;
     return 'https://' + url;
 }
-
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-
 function preloadSingleImage(url) {
     return new Promise((resolve) => {
         if (!url) { resolve(); return; }
@@ -62,6 +67,7 @@ function preloadSingleImage(url) {
 
 async function preloadImagesForSlide(item) {
     const promises = [];
+    // Tenta todas as variações de nomes (Robustez do Horizontal)
     const imgProd = item.Imagem_produto || item.imagem_produto || item.imagem_produto_text;
     if (imgProd) promises.push(preloadSingleImage(imgProd));
     
@@ -74,96 +80,87 @@ async function preloadImagesForSlide(item) {
     await Promise.all(promises);
 }
 
-// --- APLICAÇÃO DE CORES (CORRIGIDO) ---
+// --- CONFIGURAÇÃO (Lógica do Horizontal adaptada) ---
 function applyConfig(configC, configT) {
     const r = document.documentElement;
     
-    // 1. Cor Principal (Fundo + Círculo)
+    // 1. Cores (Tenta com e sem _text)
     const c01 = configT.cor_01 || configT.cor_01_text;
     if(c01) {
         r.style.setProperty('--cor-fundo-principal', c01);
-        // Se o seu CSS usar --cor-bg-preco, atualiza também
         r.style.setProperty('--cor-bg-preco', c01);
     }
-
-    // 2. Cor Secundária (Onde estava o erro da cor amarela!)
-    // Agora mapeamos cor_02 para --cor-fundo-secundario, igual ao Horizontal
+    
     const c02 = configT.cor_02 || configT.cor_02_text;
     if(c02) {
-        r.style.setProperty('--cor-fundo-secundario', c02);
-        r.style.setProperty('--cor-destaque-luz-borda', c02);
+        r.style.setProperty('--cor-fundo-secundario', c02); // No vertical usa-se essa var?
+        r.style.setProperty('--cor-destaque-luz-borda', c02); // E essa
+        r.style.setProperty('--cor-seta-qr', c02);
     }
-
-    // 3. Cor Terciária (Seta do QR / Faixas)
+    
     const c03 = configT.cor_03 || configT.cor_03_text;
-    if(c03) {
-        r.style.setProperty('--cor-seta-qr', c03);
-        r.style.setProperty('--cor-faixas', c03);
-    }
+    if(c03) r.style.setProperty('--cor-faixas', c03);
 
-    // Textos
-    const txt1 = configT.cor_texto_01 || configT.cor_texto_1 || configT.cor_texto_01_text;
-    if(txt1) r.style.setProperty('--cor-texto-placa', txt1); // ou --cor-texto-descricao
+    // 2. Textos
+    const corTxt1 = configT.cor_texto_01 || configT.cor_texto_1 || configT.cor_texto_01_text;
+    if(corTxt1) r.style.setProperty('--cor-texto-descricao', corTxt1); // Vertical usa essa var
     
-    const txt2 = configT.cor_texto_02 || configT.cor_texto_2 || configT.cor_texto_02_text;
-    if(txt2) {
-        r.style.setProperty('--cor-texto-preco', txt2);
-        r.style.setProperty('--cor-texto-footer', txt2);
+    const corTxt2 = configT.cor_texto_02 || configT.cor_texto_2 || configT.cor_texto_02_text;
+    if(corTxt2) {
+        r.style.setProperty('--cor-texto-preco', corTxt2);
+        r.style.setProperty('--cor-texto-footer', corTxt2);
     }
 
-    // Logo
+    // 3. Logo
     const logoUrl = configC.LOGO_MERCADO_URL || configC.logo_mercado_url_text;
-    if (logoUrl && logoImg) {
+    if (logoUrl) {
         logoImg.src = formatURL(logoUrl);
+        if(logoContainer) logoContainer.classList.add('fadeIn');
     }
-    
-    if(logoContainer) logoContainer.classList.add('fadeIn');
     if(footerContainer) footerContainer.classList.add('fadeIn');
 }
 
-// --- ATUALIZA CONTEÚDO (QR Code Corrigido) ---
+// --- CONTEÚDO (Lógica do Horizontal adaptada) ---
 function updateContent(item) {
-    // Imagem
+    // 1. Imagem
     const imgUrl = formatURL(item.Imagem_produto || item.imagem_produto || item.imagem_produto_text);
-    if(produtoImg) produtoImg.src = imgUrl;
+    produtoImg.src = imgUrl;
     if(produtoImgGhost) produtoImgGhost.src = imgUrl;
 
-    // Textos
-    if(descricaoTexto) descricaoTexto.textContent = item.nome || item.nome_text;
-    if(precoTexto) precoTexto.textContent = item.valor || item.valor_text;
+    // 2. Textos (Usando os elementos do Vertical)
+    descricaoTexto.textContent = item.nome || item.nome_text;
+    precoTexto.textContent = item.valor || item.valor_text;
     
-    // QR Code (Lógica Unificada com o Horizontal)
-    const qrUrl = item.QR_produto || item.qr_produto || item.t_qr_produto_text;
-    if(qrUrl) {
-        if(qrcodeImg) qrcodeImg.src = formatURL(qrUrl);
-        if(qrcodeContainer) qrcodeContainer.style.display = 'flex';
-    } else {
-        // Se não tiver QR, esconde ou mantém (depende da sua preferência)
-        if(qrcodeContainer) qrcodeContainer.style.display = 'flex'; // Mantém visível para layout
-    }
-    
-    const txtQR = item.Texto_QR || item.texto_qr || item.texto_qr_text;
-    if(qrTexto) qrTexto.textContent = txtQR || "Aproveite as ofertas";
-
-    // Selo
+    // 3. Selo
     const seloUrl = item.Selo_Produto || item.selo_produto || item.selo_produto_text;
-    if(seloImg && seloUrl){
+    if(seloUrl){
         seloImg.src = formatURL(seloUrl);
         if(seloContainer) seloContainer.style.display = 'flex';
-    } else if(seloContainer) {
-        seloContainer.style.display = 'flex'; 
+    } else {
+        if(seloContainer) seloContainer.style.display = 'none';
     }
+
+    // 4. QR Code
+    const qrUrl = item.QR_produto || item.qr_produto || item.t_qr_produto_text;
+    if(qrUrl) qrcodeImg.src = formatURL(qrUrl);
+    
+    const txtQR = item.Texto_QR || item.texto_qr || item.texto_qr_text;
+    qrTexto.textContent = txtQR || "Venha Conferir";
 }
 
-// --- ANIMAÇÕES ---
+// --- ANIMAÇÕES (Mesma lógica, elementos diferentes) ---
 async function playEntrance() {
     elementosRotativos.forEach(el => { if(el) el.className = 'elemento-animado'; });
     
-    if(seloContainer) seloContainer.classList.add('slideInDown');
-    if(produtoContainer) produtoContainer.classList.add('slideInUp');
-    setTimeout(() => { if(descricaoContainer) descricaoContainer.classList.add('slideInLeft'); }, 200);
-    setTimeout(() => { if(precoContainer) precoContainer.classList.add('popIn'); }, 400);
-    if(footerContainer) footerContainer.classList.add('slideInUp'); 
+    if(produtoContainer) produtoContainer.classList.add('slideInLeft'); // Vertical: SlideInLeft ou Up? Horizontal é Left.
+    // Se quiser manter o original do vertical use slideInUp:
+    // if(produtoContainer) produtoContainer.classList.add('slideInUp'); 
+    
+    setTimeout(() => { if(seloContainer) seloContainer.classList.add('stampIn'); }, 200);
+    
+    if(descricaoContainer) descricaoContainer.classList.add('slideInRight'); // ou slideInLeft
+    if(precoContainer) precoContainer.classList.add('elasticUp'); // ou popIn
+    if(footerContainer) footerContainer.classList.add('slideInUp');
     
     await sleep(TEMPO_TRANSICAO);
 }
@@ -171,11 +168,11 @@ async function playEntrance() {
 async function playExit() {
     elementosRotativos.forEach(el => { if(el) el.className = 'elemento-animado'; });
     
-    if(produtoContainer) produtoContainer.classList.add('slideOutDown');
-    if(descricaoContainer) descricaoContainer.classList.add('slideOutDown');
-    if(precoContainer) precoContainer.classList.add('slideOutDown');
-    if(seloContainer) seloContainer.classList.add('slideOutDown'); 
-    if(footerContainer) footerContainer.classList.add('slideOutDown');
+    if(produtoContainer) produtoContainer.classList.add('slideOutLeft'); // ou slideOutDown
+    if(seloContainer) seloContainer.classList.add('slideOutLeft');
+    if(descricaoContainer) descricaoContainer.classList.add('slideOutRight');
+    if(precoContainer) precoContainer.classList.add('slideOutRight');
+    if(footerContainer) footerContainer.classList.add('slideOutLeft'); // ou slideOutDown
     
     await sleep(500);
 }
@@ -194,28 +191,24 @@ async function startRotation(items) {
     startRotation(items);
 }
 
-// --- INICIALIZAÇÃO ---
 async function init() {
     let data = null;
     try {
-        // Tenta cache
         const cached = localStorage.getItem(CACHE_KEY);
         if (cached) {
             data = JSON.parse(cached);
             runApp(data);
-            // Atualiza em background
             fetchData().then(newData => {
                 if(newData) localStorage.setItem(CACHE_KEY, JSON.stringify(newData));
             });
         } else {
-            // Busca API
             data = await fetchData();
             if(data) {
                 localStorage.setItem(CACHE_KEY, JSON.stringify(data));
                 runApp(data);
             }
         }
-    } catch (e) { console.error("Erro Fatal:", e); }
+    } catch (e) { console.error("Erro init:", e); }
 }
 
 async function fetchData() {
@@ -236,12 +229,11 @@ function runApp(data) {
     produtos = data.response.produtos;
 
     if(produtos) {
+        // A mesma validação robusta do horizontal
         const validos = produtos.filter(p => p && (p.nome || p.nome_text));
+        applyConfig(configCliente, configTemplate);
         if(validos.length > 0) {
-            applyConfig(configCliente, configTemplate);
             startRotation(validos);
-        } else {
-            console.warn("Nenhum produto válido encontrado.");
         }
     }
 }
