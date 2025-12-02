@@ -1,4 +1,4 @@
-// script.js - Versão Vertical FINAL (Corrigida: QR Code Robusto + Logs)
+// script.js - Versão Vertical Final (Correção QR Code Definitiva)
 
 const DEFAULT_VIDEO_ID = "1764628151406x909721458907021300"; 
 const API_URL_BASE = "https://bluemidia.digital/version-test/api/1.1/wf/get_video_data";
@@ -6,10 +6,7 @@ const API_URL_BASE = "https://bluemidia.digital/version-test/api/1.1/wf/get_vide
 // --- URL & API ---
 const queryParams = new URLSearchParams(window.location.search);
 let video_id = queryParams.get('video_id');
-if (!video_id) {
-    console.log("Usando ID padrão de teste.");
-    video_id = DEFAULT_VIDEO_ID;
-}
+if (!video_id) video_id = DEFAULT_VIDEO_ID;
 
 const API_URL_FINAL = `${API_URL_BASE}?video_id=${video_id}`;
 const CACHE_KEY = `hortifruti_vert_${video_id}`;
@@ -17,7 +14,7 @@ const CACHE_KEY = `hortifruti_vert_${video_id}`;
 // Variáveis Globais
 let configCliente = {}, configTemplate = {}, produtos = [];
 
-// --- ELEMENTOS DO DOM ---
+// Elementos DOM
 const logoImg = document.getElementById('logo-img');
 const logoContainer = document.getElementById('logo-container');
 const produtoImg = document.getElementById('produto-img');
@@ -29,16 +26,11 @@ const precoTexto = document.getElementById('preco-texto');
 const precoContainer = document.getElementById('preco-container');
 const seloImg = document.getElementById('selo-img');
 const seloContainer = document.getElementById('selo-container');
-
-// Rodapé
-const footerContainer = document.getElementById('info-inferior-wrapper'); 
-
-// QR Code
+const footerContainer = document.getElementById('info-inferior-wrapper');
 const qrcodeContainer = document.getElementById('qrcode-container');
 const qrcodeImg = document.getElementById('qrcode-img');
 const qrTexto = document.getElementById('qr-texto');
 
-// Lista de elementos animados
 const elementosRotativos = [
     produtoContainer, seloContainer, descricaoContainer, precoContainer, footerContainer, qrcodeContainer
 ];
@@ -74,7 +66,8 @@ async function preloadImagesForSlide(item) {
     const imgSelo = item.Selo_Produto || item.selo_produto || item.selo_produto_text;
     if (imgSelo) promises.push(preloadSingleImage(imgSelo));
     
-    const imgQR = item.QR_produto || item.qr_produto || item.t_qr_produto_text;
+    // Tenta todas as variações de QR
+    const imgQR = item.QR_produto || item.qr_produto || item.t_qr_produto_text || item.t_qr_produto;
     if (imgQR) promises.push(preloadSingleImage(imgQR));
     
     await Promise.all(promises);
@@ -83,9 +76,7 @@ async function preloadImagesForSlide(item) {
 // --- APLICAÇÃO DE CORES ---
 function applyConfig(configC, configT) {
     const r = document.documentElement;
-    console.log("🎨 Aplicando Cores...", configT);
-
-    // Cores
+    
     const c01 = configT.cor_01 || configT.cor_01_text;
     if(c01) {
         r.style.setProperty('--cor-fundo-principal', c01);
@@ -101,62 +92,49 @@ function applyConfig(configC, configT) {
         r.style.setProperty('--cor-seta-qr', c02);
     }
 
-    // Textos
-    const txt1 = configT.cor_texto_01 || configT.cor_texto_1 || configT.cor_texto_01_text;
-    if(txt1) r.style.setProperty('--cor-texto-placa', txt1);
+    const corTxt1 = configT.cor_texto_01 || configT.cor_texto_1 || configT.cor_texto_01_text;
+    if(corTxt1) r.style.setProperty('--cor-texto-placa', corTxt1);
     
-    const txt2 = configT.cor_texto_02 || configT.cor_texto_2 || configT.cor_texto_02_text;
-    if(txt2) {
-        r.style.setProperty('--cor-texto-preco', txt2);
-        r.style.setProperty('--cor-texto-footer', txt2);
+    const corTxt2 = configT.cor_texto_02 || configT.cor_texto_2 || configT.cor_texto_02_text;
+    if(corTxt2) {
+        r.style.setProperty('--cor-texto-preco', corTxt2);
+        r.style.setProperty('--cor-texto-footer', corTxt2);
     }
 
-    // Logo
     const logoUrl = configC.LOGO_MERCADO_URL || configC.logo_mercado_url_text;
     if (logoUrl && logoImg) {
         logoImg.src = formatURL(logoUrl);
     }
     
-    // Animações de entrada
     if(logoContainer) logoContainer.classList.add('fadeIn');
     if(footerContainer) footerContainer.classList.add('fadeIn');
 }
 
-// --- ATUALIZA CONTEÚDO ---
+// --- ATUALIZA CONTEÚDO (CORREÇÃO DO QR CODE AQUI) ---
 function updateContent(item) {
-    console.log("🔄 Atualizando Produto:", item.nome || item.nome_text);
-
-    // 1. Imagem Principal
     const imgUrl = formatURL(item.Imagem_produto || item.imagem_produto || item.imagem_produto_text);
     if(produtoImg) produtoImg.src = imgUrl;
     if(produtoImgGhost) produtoImgGhost.src = imgUrl;
 
-    // 2. Textos
     if(descricaoTexto) descricaoTexto.textContent = item.nome || item.nome_text;
     if(precoTexto) precoTexto.textContent = item.valor || item.valor_text;
     
-    // 3. QR Code (Lógica Reforçada)
-    // Tenta achar a URL do QR Code em qualquer um desses campos
-    const qrUrl = item.QR_produto || item.qr_produto || item.t_qr_produto_text;
+    // --- CORREÇÃO QR CODE: Tenta TODAS as variações ---
+    const qrUrl = item.QR_produto || item.qr_produto || item.t_qr_produto_text || item.t_qr_produto;
     
-    if (qrcodeImg) {
-        if (qrUrl) {
-            console.log("✅ QR Code encontrado:", qrUrl);
-            qrcodeImg.src = formatURL(qrUrl);
-            // Garante que o container está visível se tiver imagem
-            if(qrcodeContainer) qrcodeContainer.style.display = 'flex'; // ou 'block' dependendo do CSS
-        } else {
-            console.warn("⚠️ QR Code NÃO encontrado para este produto.");
-            // Opcional: Esconder o QR ou colocar um placeholder se vazio
-            // qrcodeImg.src = ""; 
-        }
+    if (qrUrl) {
+        console.log("QR Code encontrado:", qrUrl); // DEBUG
+        if(qrcodeImg) qrcodeImg.src = formatURL(qrUrl);
+        if(qrcodeContainer) qrcodeContainer.style.display = 'flex'; // Garante que aparece
+    } else {
+        console.warn("QR Code não encontrado para este item.");
+        // Opcional: Esconder se não tiver
+        // if(qrcodeContainer) qrcodeContainer.style.display = 'none';
     }
     
-    // Texto do QR
     const txtQR = item.Texto_QR || item.texto_qr || item.texto_qr_text;
     if(qrTexto) qrTexto.textContent = txtQR || "Aproveite as ofertas";
 
-    // 4. Selo
     const seloUrl = item.Selo_Produto || item.selo_produto || item.selo_produto_text;
     if(seloImg && seloUrl){
         seloImg.src = formatURL(seloUrl);
@@ -172,10 +150,8 @@ async function playEntrance() {
     
     if(seloContainer) seloContainer.classList.add('slideInDown');
     if(produtoContainer) produtoContainer.classList.add('slideInUp');
-    
     setTimeout(() => { if(descricaoContainer) descricaoContainer.classList.add('slideInLeft'); }, 200);
     setTimeout(() => { if(precoContainer) precoContainer.classList.add('popIn'); }, 400);
-    
     if(footerContainer) footerContainer.classList.add('slideInUp'); 
     
     await sleep(TEMPO_TRANSICAO);
@@ -251,7 +227,6 @@ function runApp(data) {
 
     if(produtos) {
         const validos = produtos.filter(p => p && (p.nome || p.nome_text));
-        console.log("Produtos válidos:", validos);
         if(validos.length > 0) {
             applyConfig(configCliente, configTemplate);
             startRotation(validos);
