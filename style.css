@@ -1,4 +1,4 @@
-/* style.css - Vertical Final Revisado */
+/* style.css - Vertical Final Revisado e Corrigido */
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;600;700&display=swap');
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -9,6 +9,8 @@
     --cor-texto-descricao: #FFFFFF;
     --cor-texto-preco: #FFFFFF;
     --cor-seta-qr: #00A300;
+    /* Variável extra para garantir consistência no texto do footer se necessário */
+    --cor-texto-footer: #FFFFFF; 
 }
 
 html, body {
@@ -98,12 +100,17 @@ html, body {
 }
 #qrcode-img { width: 100%; height: 100%; object-fit: contain; }
 
-/* Animações */
+/* --- ANIMAÇÕES (Sincronizadas com o JS) --- */
+
 .fadeIn { animation: fadeIn 1s forwards; }
 @keyframes fadeIn { to { opacity: 1; } }
 
 .slideInUp { animation: slideInUp 0.8s forwards; }
 @keyframes slideInUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ADICIONADO: Faltava esta animação que o JS chamava para o Selo */
+.slideInDown { animation: slideInDown 0.8s forwards; }
+@keyframes slideInDown { from { opacity: 0; transform: translateY(-50px); } to { opacity: 1; transform: translateY(0); } }
 
 .slideInLeft { animation: slideInLeft 0.8s forwards; }
 @keyframes slideInLeft { from { opacity: 0; transform: translateX(-50px); } to { opacity: 1; transform: translateX(0); } }
