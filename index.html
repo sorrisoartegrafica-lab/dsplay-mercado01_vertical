@@ -3,47 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mídia Indoor - Vertical</title>
+    <title>Painel Vertical - BlueMídia</title>
     <link rel="stylesheet" href="style.css">
+    
+    <script>
+        (function() {
+            const corSalva = localStorage.getItem('cache_cor_fundo');
+            if (corSalva) {
+                document.documentElement.style.setProperty('--cor-fundo-principal', corSalva);
+                document.documentElement.style.backgroundColor = corSalva;
+                document.body.style.backgroundColor = corSalva;
+            }
+        })();
+    </script>
 </head>
 <body>
     
     <div id="app">
-        <!-- Fundos -->
         <div id="fundo-principal"></div>
         <div id="fundo-secundario"></div>
 
-        <!-- Logo -->
         <div id="logo-container" class="elemento-animado">
-            <img id="logo-img" src="" alt="Logo">
+            <img id="logo-img" src="" alt="Logo Mercado">
         </div>
 
-        <!-- Produto (Com Efeito Ghost) -->
         <div id="produto-container" class="elemento-animado">
             <img id="produto-img-ghost" src="" alt="">
-            <img id="produto-img" src="" alt="Produto">
+            <img id="produto-img" src="" alt="Imagem Produto">
         </div>
 
-        <!-- Selo -->
         <div id="selo-container" class="elemento-animado">
-            <img id="selo-img" src="" alt="Selo">
+            <img id="selo-img" src="" alt="Selo Oferta">
         </div>
 
-        <!-- Descrição -->
         <div id="descricao-container" class="elemento-animado">
-            <p id="descricao-texto">Carregando...</p>
+            <p id="descricao-texto">Carregando ofertas...</p>
         </div>
 
-        <!-- Preço -->
         <div id="preco-container" class="elemento-animado">
             <span class="simbolo-real">R$</span>
-            <span id="preco-texto"></span>
+            <span id="preco-texto">--,--</span>
         </div>
 
-        <!-- Rodapé -->
         <div id="info-inferior-wrapper" class="elemento-animado">
             <div id="qr-texto-container">
-                <p id="qr-texto">Aproveite essa oferta</p>
+                <p id="qr-texto">Aproveite!</p>
             </div>
             <div id="qrcode-container">
                 <img id="qrcode-img" src="" alt="QR Code">
