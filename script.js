@@ -1,15 +1,20 @@
-// script.js - Vertical Final (Correções: Cor QR, Texto CTA, Selo)
+// script.js - Vertical Final (Correção de Campos e Layout Flexbox)
 
 const DEFAULT_VIDEO_ID = "1764628151406x909721458907021300"; 
 const API_URL_BASE = "https://bluemidia.digital/version-test/api/1.1/wf/get_video_data";
 
 // --- URL & API ---
 const queryParams = new URLSearchParams(window.location.search);
-let video_id = queryParams.get('video_id') || DEFAULT_VIDEO_ID;
+let video_id = queryParams.get('video_id');
+if (!video_id) video_id = DEFAULT_VIDEO_ID;
+
 const API_URL_FINAL = `${API_URL_BASE}?video_id=${video_id}`;
 const CACHE_KEY = `hortifruti_vert_${video_id}`;
 
-// Elementos DOM
+// Variáveis Globais
+let configCliente = {}, configTemplate = {}, produtos = [];
+
+// --- ELEMENTOS DO DOM ---
 const logoImg = document.getElementById('logo-img');
 const logoContainer = document.getElementById('logo-container');
 const produtoImg = document.getElementById('produto-img');
@@ -21,14 +26,16 @@ const precoTexto = document.getElementById('preco-texto');
 const precoContainer = document.getElementById('preco-container');
 const seloImg = document.getElementById('selo-img');
 const seloContainer = document.getElementById('selo-container');
-const footerContainer = document.getElementById('info-inferior-wrapper'); 
+const footerContainer = document.getElementById('info-inferior-wrapper'); // Rodapé
 const qrcodeContainer = document.getElementById('qrcode-container');
 const qrcodeImg = document.getElementById('qrcode-img');
 const qrTexto = document.getElementById('qr-texto');
-const qrTextoContainer = document.getElementById('qr-texto-container'); // NOVO
 
+// LISTA DE ANIMAÇÃO CORRIGIDA:
+// Removido 'qrcodeContainer' pois ele está dentro do 'footerContainer'.
+// Animar ele separadamente quebrava o layout Flexbox.
 const elementosRotativos = [
-    produtoContainer, seloContainer, descricaoContainer, precoContainer, footerContainer, qrcodeContainer
+    produtoContainer, seloContainer, descricaoContainer, precoContainer, footerContainer
 ].filter(el => el !== null);
 
 const TEMPO_SLOT_TOTAL = 15000;
@@ -56,13 +63,14 @@ function preloadSingleImage(url) {
 
 async function preloadImagesForSlide(item) {
     const promises = [];
-    const imgProd = item.Imagem_produto || item.imagem_produto || item.imagem_produto_text;
+    // Mapeamento baseado no seu vídeo (Maiúsculas/Minúsculas exatas)
+    const imgProd = item.Imagem_produto || item.imagem_produto;
     if (imgProd) promises.push(preloadSingleImage(imgProd));
     
-    const imgSelo = item.Selo_Produto || item.selo_produto || item.selo_produto_text;
+    const imgSelo = item.Selo_Produto || item.selo_produto;
     if (imgSelo) promises.push(preloadSingleImage(imgSelo));
     
-    const imgQR = item.QR_produto || item.qr_produto || item.t_qr_produto_text;
+    const imgQR = item.t_qr_produto_text || item.QR_produto || item.qr_produto;
     if (imgQR) promises.push(preloadSingleImage(imgQR));
     
     await Promise.all(promises);
@@ -71,30 +79,21 @@ async function preloadImagesForSlide(item) {
 // --- APLICAÇÃO DE CORES ---
 function applyConfig(configC, configT) {
     const r = document.documentElement;
-    console.log("🎨 Cores:", configT);
-
-    // 1. Fundo Principal
+    
+    // Cores
     const c01 = configT.cor_01 || configT.cor_01_text;
     if(c01) {
         r.style.setProperty('--cor-fundo-principal', c01);
         r.style.setProperty('--cor-bg-preco', c01);
     }
-
-    // 2. Amarelo (Fundo Secundário)
     const c02 = configT.cor_02 || configT.cor_02_text;
     if(c02) {
         r.style.setProperty('--cor-fundo-secundario', c02);
         r.style.setProperty('--cor-destaque-luz-borda', c02);
+        r.style.setProperty('--cor-seta-qr', c02);
     }
-
-    // 3. Verde/Destaque (Seta QR e Faixas) - AQUI ESTAVA O PROBLEMA PROVÁVEL
     const c03 = configT.cor_03 || configT.cor_03_text;
-    if(c03) {
-        r.style.setProperty('--cor-seta-qr', c03); // Define a cor da seta/caixa
-        r.style.setProperty('--cor-faixas', c03);
-        // Força a cor diretamente no elemento se o CSS não pegar
-        if(qrTextoContainer) qrTextoContainer.style.backgroundColor = c03;
-    }
+    if(c03) r.style.setProperty('--cor-faixas', c03);
 
     // Textos
     const txt1 = configT.cor_texto_01 || configT.cor_texto_1 || configT.cor_texto_01_text;
@@ -116,47 +115,45 @@ function applyConfig(configC, configT) {
     if(footerContainer) footerContainer.classList.add('fadeIn');
 }
 
-// --- ATUALIZA CONTEÚDO ---
+// --- ATUALIZA CONTEÚDO (Nomes Corrigidos) ---
 function updateContent(item) {
-    console.log("🔄 Item:", item.nome);
+    console.log("📦 Processando item:", item);
 
-    // Imagem
-    const imgUrl = formatURL(item.Imagem_produto || item.imagem_produto || item.imagem_produto_text);
+    // 1. Imagem Produto
+    const imgUrl = formatURL(item.Imagem_produto || item.imagem_produto);
     if(produtoImg) produtoImg.src = imgUrl;
     if(produtoImgGhost) produtoImgGhost.src = imgUrl;
 
-    // Textos
+    // 2. Textos
     if(descricaoTexto) descricaoTexto.textContent = item.nome || item.nome_text;
     if(precoTexto) precoTexto.textContent = item.valor || item.valor_text;
 
-    // QR Code
-    const qrUrl = item.QR_produto || item.qr_produto || item.t_qr_produto_text;
-    if(qrUrl && qrcodeImg) {
-        qrcodeImg.src = formatURL(qrUrl);
-        if(qrcodeContainer) qrcodeContainer.style.display = 'flex';
-    } else if(qrcodeContainer) {
-        // Se não tiver QR, esconde a caixa branca
-        qrcodeContainer.style.display = 'none';
+    // 3. QR Code (Campo: t_qr_produto_text)
+    const qrUrl = item.t_qr_produto_text || item.QR_produto || item.qr_produto;
+    
+    if(qrcodeContainer) {
+        if (qrUrl) {
+            qrcodeImg.src = formatURL(qrUrl);
+            qrcodeContainer.style.display = 'flex';
+        } else {
+            // Se não tiver QR, podemos esconder ou deixar visível vazio
+            // qrcodeContainer.style.display = 'none';
+        }
     }
     
-    // Texto do QR (CTA)
-    // Prioridade: Texto do Banco > "APROVEITE!"
     const txtQR = item.Texto_QR || item.texto_qr || item.texto_qr_text;
-    if(qrTexto) {
-        qrTexto.textContent = txtQR || "APROVEITE!";
-        // Força maiúsculas via JS também
-        qrTexto.style.textTransform = "uppercase";
-    }
+    if(qrTexto) qrTexto.textContent = txtQR || "Aproveite";
 
-    // Selo (Correção de visibilidade)
-    const seloUrl = item.Selo_Produto || item.selo_produto || item.selo_produto_text;
-    if(seloImg && seloUrl) {
+    // 4. Selo (Campo: Selo_Produto - Maiúsculas!)
+    const seloUrl = item.Selo_Produto || item.selo_produto; // Prioridade para o nome do vídeo
+    
+    if(seloUrl) {
         console.log("✅ Selo encontrado:", seloUrl);
-        seloImg.src = formatURL(seloUrl);
+        if(seloImg) seloImg.src = formatURL(seloUrl);
         if(seloContainer) seloContainer.style.display = 'flex';
-    } else if(seloContainer) {
-        console.warn("⚠️ Selo não encontrado para este item");
-        seloContainer.style.display = 'none'; // Esconde se vazio
+    } else {
+        console.warn("⚠️ Sem selo.");
+        if(seloContainer) seloContainer.style.display = 'none';
     }
 }
 
@@ -164,14 +161,18 @@ function updateContent(item) {
 async function playEntrance() {
     elementosRotativos.forEach(el => { if(el) el.className = 'elemento-animado'; });
     
-    // Só anima se estiver visível (display != none)
-    if(seloContainer && seloContainer.style.display !== 'none') seloContainer.classList.add('slideInDown');
+    // O selo só anima se estiver visível
+    if(seloContainer && seloContainer.style.display !== 'none') {
+        seloContainer.classList.add('slideInDown');
+    }
     
     if(produtoContainer) produtoContainer.classList.add('slideInUp');
+    
     setTimeout(() => { if(descricaoContainer) descricaoContainer.classList.add('slideInLeft'); }, 200);
     setTimeout(() => { if(precoContainer) precoContainer.classList.add('popIn'); }, 400);
     
-    if(footerContainer) footerContainer.classList.add('slideInUp'); 
+    // O footer inteiro (com o QR dentro) sobe junto
+    if(footerContainer) footerContainer.classList.add('slideInUp');
     
     await sleep(TEMPO_TRANSICAO);
 }
@@ -189,18 +190,20 @@ async function playExit() {
 }
 
 async function startRotation(items) {
-    let index = 0;
-    while(true) {
-        const item = items[index];
-        await preloadImagesForSlide(item);
-        updateContent(item);
+    if(!items || items.length === 0) return;
+    let tempoPorItem = Math.max(5000, TEMPO_SLOT_TOTAL / items.length); 
+
+    for (let i = 0; i < items.length; i++) {
+        await preloadImagesForSlide(items[i]);
+        updateContent(items[i]);
         await playEntrance();
-        await sleep(5000); 
-        await playExit();
-        index = (index + 1) % items.length;
+        await sleep(tempoPorItem - TEMPO_TRANSICAO - 500);
+        if (i < items.length) await playExit();
     }
+    startRotation(items);
 }
 
+// --- INICIALIZAÇÃO ---
 async function init() {
     try {
         const res = await fetch(API_URL_FINAL);
@@ -208,7 +211,8 @@ async function init() {
         
         if(data && data.response) {
             const { configCliente, configTemplate, produtos } = data.response;
-            const validos = produtos.filter(p => p.nome || p.nome_text);
+            // Filtro: aceita 'nome' (que está no seu vídeo) ou 'nome_text'
+            const validos = produtos.filter(p => p && (p.nome || p.nome_text));
             
             if(validos.length > 0) {
                 applyConfig(configCliente, configTemplate);
