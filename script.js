@@ -1,19 +1,22 @@
-// script.js - Template 01 Horizontal (Final e Corrigido)
+// script.js - Versão Vertical Final (Corrigida e Robusta)
 
-const DEFAULT_VIDEO_ID = "1763501352257x910439018930896900"; // Substitua por um ID real seu se quiser
-// CORREÇÃO: URL correta do seu domínio
+// [CONFIG] ID Padrão para testes
+const DEFAULT_VIDEO_ID = "1763501352257x910439018930896900"; 
+// URL CORRETA do seu domínio
 const API_URL_BASE = "https://bluemidia.digital/version-test/api/1.1/wf/get_video_data";
 
+// --- URL & API ---
 const queryParams = new URLSearchParams(window.location.search);
 let video_id = queryParams.get('video_id');
 if (!video_id) {
-    console.log("Usando ID padrão.");
+    console.log("Usando ID padrão de teste.");
     video_id = DEFAULT_VIDEO_ID;
 }
 
 const API_URL_FINAL = `${API_URL_BASE}?video_id=${video_id}`;
-const CACHE_KEY = `template01_horiz_${video_id}`;
+const CACHE_KEY = `hortifruti_vert_${video_id}`;
 
+// Variáveis Globais
 let configCliente = {}, configTemplate = {}, produtos = [];
 
 // Elementos DOM
@@ -28,24 +31,28 @@ const precoTexto = document.getElementById('preco-texto');
 const precoContainer = document.getElementById('preco-container');
 const seloImg = document.getElementById('selo-img');
 const seloContainer = document.getElementById('selo-container');
+const footerContainer = document.getElementById('footer-container');
+const qrcodeContainer = document.getElementById('qrcode-container');
 const qrcodeImg = document.getElementById('qrcode-img');
 const qrTexto = document.getElementById('qr-texto');
-const infoInferiorWrapper = document.getElementById('info-inferior-wrapper');
 
 const elementosRotativos = [
-    produtoContainer, seloContainer, descricaoContainer, precoContainer, infoInferiorWrapper
+    produtoContainer, seloContainer, descricaoContainer, precoContainer, qrcodeContainer
 ];
 
 const TEMPO_SLOT_TOTAL = 15000;
 const TEMPO_TRANSICAO = 800;
 
+// --- FUNÇÕES AUXILIARES ---
 function formatURL(url) {
     if (!url) return '';
     url = url.trim();
     if (url.startsWith('http') || url.startsWith('//')) return url.startsWith('//') ? 'https:' + url : url;
     return 'https://' + url;
 }
+
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
 function preloadSingleImage(url) {
     return new Promise((resolve) => {
         if (!url) { resolve(); return; }
@@ -58,6 +65,7 @@ function preloadSingleImage(url) {
 
 async function preloadImagesForSlide(item) {
     const promises = [];
+    // Mapeamento robusto de imagens
     const imgProd = item.Imagem_produto || item.imagem_produto || item.imagem_produto_text;
     if (imgProd) promises.push(preloadSingleImage(imgProd));
     
@@ -70,77 +78,101 @@ async function preloadImagesForSlide(item) {
     await Promise.all(promises);
 }
 
+// --- APLICAÇÃO DE CORES (API -> CSS) ---
 function applyConfig(configC, configT) {
     const r = document.documentElement;
-    // Mapeamento robusto para cores (com ou sem _text)
+    
+    // Debug para ver se as cores chegaram
+    console.log("Aplicando Cores:", configT);
+
+    // Mapeamento de Cores (Tenta com e sem _text)
     const c01 = configT.cor_01 || configT.cor_01_text;
     if(c01) {
         r.style.setProperty('--cor-fundo-principal', c01);
         r.style.setProperty('--cor-bg-preco', c01);
     }
-    
-    const c02 = configT.cor_02 || configT.cor_02_text;
-    if(c02) r.style.setProperty('--cor-fundo-secundario', c02);
-    
-    const c03 = configT.cor_03 || configT.cor_03_text;
-    if(c03) r.style.setProperty('--cor-seta-qr', c03);
 
+    const c03 = configT.cor_03 || configT.cor_03_text;
+    if(c03) r.style.setProperty('--cor-faixas', c03);
+
+    const c02 = configT.cor_02 || configT.cor_02_text;
+    if(c02) {
+        r.style.setProperty('--cor-destaque-luz-borda', c02);
+        r.style.setProperty('--cor-seta-qr', c02);
+    }
+
+    // Mapeamento de Textos (Cores)
     const corTxt1 = configT.cor_texto_01 || configT.cor_texto_1 || configT.cor_texto_01_text;
-    if(corTxt1) r.style.setProperty('--cor-texto-descricao', corTxt1);
+    if(corTxt1) r.style.setProperty('--cor-texto-placa', corTxt1);
     
     const corTxt2 = configT.cor_texto_02 || configT.cor_texto_2 || configT.cor_texto_02_text;
-    if(corTxt2) r.style.setProperty('--cor-texto-preco', corTxt2);
+    if(corTxt2) {
+        r.style.setProperty('--cor-texto-preco', corTxt2);
+        r.style.setProperty('--cor-texto-footer', corTxt2);
+    }
 
+    // Logo do Cliente
     const logoUrl = configC.LOGO_MERCADO_URL || configC.logo_mercado_url_text;
     if (logoUrl) {
         logoImg.src = formatURL(logoUrl);
-        logoContainer.classList.add('fadeIn');
     }
+    
+    logoContainer.classList.add('fadeIn');
+    footerContainer.classList.add('fadeIn');
 }
 
+// --- ATUALIZA CONTEÚDO ---
 function updateContent(item) {
+    console.log("Exibindo item:", item); // Debug
+
+    // Imagem
     const imgUrl = formatURL(item.Imagem_produto || item.imagem_produto || item.imagem_produto_text);
     produtoImg.src = imgUrl;
     if(produtoImgGhost) produtoImgGhost.src = imgUrl;
 
+    // Texto
     descricaoTexto.textContent = item.nome || item.nome_text;
     precoTexto.textContent = item.valor || item.valor_text;
     
+    // QR Code
+    const qrUrl = item.QR_produto || item.qr_produto || item.t_qr_produto_text;
+    if(qrUrl) qrcodeImg.src = formatURL(qrUrl);
+    
+    const txtQR = item.Texto_QR || item.texto_qr || item.texto_qr_text;
+    if(qrTexto) qrTexto.textContent = txtQR || "Aproveite as ofertas";
+
     // Selo
     const seloUrl = item.Selo_Produto || item.selo_produto || item.selo_produto_text;
     if(seloUrl){
         seloImg.src = formatURL(seloUrl);
         seloContainer.style.display = 'flex';
     } else {
-        seloContainer.style.display = 'none';
+        seloContainer.style.display = 'flex'; // Mantém layout
     }
-
-    // QR Code e Texto
-    const qrUrl = item.QR_produto || item.qr_produto || item.t_qr_produto_text;
-    if(qrUrl) qrcodeImg.src = formatURL(qrUrl);
-    
-    const txtQR = item.Texto_QR || item.texto_qr || item.texto_qr_text;
-    qrTexto.textContent = txtQR || "Venha Conferir";
 }
 
-// --- ANIMAÇÕES (Mantidas) ---
+// --- ANIMAÇÕES ---
 async function playEntrance() {
     elementosRotativos.forEach(el => el.className = 'elemento-animado');
-    produtoContainer.classList.add('slideInLeft');
-    setTimeout(() => { seloContainer.classList.add('stampIn'); }, 200);
-    descricaoContainer.classList.add('slideInRight');
-    precoContainer.classList.add('elasticUp');
-    infoInferiorWrapper.classList.add('slideInUp');
+    
+    seloContainer.classList.add('slideInDown');
+    produtoContainer.classList.add('slideInUp');
+    setTimeout(() => { descricaoContainer.classList.add('slideInLeft'); }, 200);
+    setTimeout(() => { precoContainer.classList.add('popIn'); }, 400);
+    qrcodeContainer.classList.add('slideInUp');
+    
     await sleep(TEMPO_TRANSICAO);
 }
 
 async function playExit() {
     elementosRotativos.forEach(el => el.className = 'elemento-animado');
-    produtoContainer.classList.add('slideOutLeft');
-    seloContainer.classList.add('slideOutLeft');
-    descricaoContainer.classList.add('slideOutRight');
-    precoContainer.classList.add('slideOutRight');
-    infoInferiorWrapper.classList.add('slideOutLeft');
+    
+    produtoContainer.classList.add('slideOutDown');
+    descricaoContainer.classList.add('slideOutDown');
+    precoContainer.classList.add('slideOutDown');
+    seloContainer.classList.add('slideOutDown'); 
+    qrcodeContainer.classList.add('slideOutDown');
+    
     await sleep(500);
 }
 
@@ -158,10 +190,12 @@ async function startRotation(items) {
     startRotation(items);
 }
 
+// --- INICIALIZAÇÃO ---
 async function init() {
     let data = null;
     try {
-        console.log("Iniciando Template 01. Buscando:", API_URL_FINAL);
+        console.log("Iniciando Vertical. Buscando:", API_URL_FINAL);
+        
         const cached = localStorage.getItem(CACHE_KEY);
         if (cached) {
             data = JSON.parse(cached);
@@ -176,13 +210,13 @@ async function init() {
                 runApp(data);
             }
         }
-    } catch (e) { console.error("Erro no init:", e); }
+    } catch (e) { console.error("Erro Fatal:", e); }
 }
 
 async function fetchData() {
     try {
         const res = await fetch(API_URL_FINAL);
-        if(!res.ok) throw new Error("Erro API: " + res.status);
+        if(!res.ok) throw new Error("Erro na resposta da API: " + res.status);
         return await res.json();
     } catch (e) { 
         console.error("Falha no fetch:", e);
@@ -192,7 +226,7 @@ async function fetchData() {
 
 function runApp(data) {
     if (!data || !data.response) {
-        console.error("Dados inválidos:", data);
+        console.error("Dados inválidos recebidos:", data);
         return;
     }
     configCliente = data.response.configCliente;
@@ -200,12 +234,16 @@ function runApp(data) {
     produtos = data.response.produtos;
 
     if(produtos) {
+        // Filtro robusto: aceita 'nome' OU 'nome_text'
         const validos = produtos.filter(p => p && (p.nome || p.nome_text));
-        applyConfig(configCliente, configTemplate);
+        
+        console.log("Produtos válidos:", validos);
+
         if(validos.length > 0) {
+            applyConfig(configCliente, configTemplate);
             startRotation(validos);
         } else {
-            console.warn("Nenhum produto válido encontrado.");
+            console.warn("Nenhum produto válido encontrado. Verifique os nomes dos campos no banco.");
         }
     }
 }
